@@ -8,19 +8,20 @@ class CustomUserAdmin(UserAdmin):
 
     fieldsets = UserAdmin.fieldsets + (
     ('Additional Information', {
-        'fields': (
-            'phone_number',
-            'role',
-            'full_name',
-            'date_of_birth',
-            'gender',
-            'address',
-            'emergency_contact_name',
-            'emergency_contact_number',
-            'category',
-            'other_category',
-            )
-        }),
+    'fields': (
+        'phone_number',
+        'role',
+        'full_name',
+        'date_of_birth',
+        'gender',
+        'address',
+        'emergency_contact_name',
+        'emergency_contact_number',
+        'category',
+        'other_category',
+        'category_details',
+        )
+    }),
     )
 
     add_fieldsets = UserAdmin.add_fieldsets + (

@@ -37,14 +37,6 @@ mobileSignUp.addEventListener('click', showSignUp);
 mobileSignIn.addEventListener('click', showSignIn);
 
 
-// Restore the previous panel after refresh
-
-const savedPanel = sessionStorage.getItem('authPanel');
-
-if (savedPanel === 'signup') {
-    container.classList.add('right-panel-active');
-}
-
 
 // ===================================
 // CATEGORY-SPECIFIC REGISTRATION FIELDS
@@ -178,26 +170,76 @@ const categoryFormFields = {
 
 // Display the appropriate fields
 
+// ===================================
+// RESTORE FORM DATA
+// ===================================
+
+const formDataElement = document.getElementById('form-data');
+
+const formData = formDataElement
+    ? JSON.parse(formDataElement.textContent)
+    : {};
+
+
+
 function showCategoryFields() {
 
     const selectedCategory = categorySelect.value;
 
+    // Generate the appropriate input fields
     categoryFields.innerHTML =
         categoryFormFields[selectedCategory] || '';
 
+    // Restore previously entered values
+    categoryFields.querySelectorAll('input').forEach(input => {
+
+        if (formData[input.name] !== undefined) {
+            input.value = formData[input.name];
+        }
+
+    });
 }
 
 
-// Listen for category changes
-
+// Register the change listener BEFORE initial rendering
 categorySelect.addEventListener('change', showCategoryFields);
 
 
-// ===================================
-// INITIAL PAGE SETUP
-// ===================================
+// Restore the previously selected category
+if (formData.category) {
+    categorySelect.value = formData.category;
+}
 
-// Display category fields if a category is already selected
 
+// Generate category fields immediately on page load
 showCategoryFields();
 
+
+// Restore normal signup fields
+document.querySelectorAll('.sign-up-container input').forEach(input => {
+
+    if (
+        input.type !== 'password' &&
+        formData[input.name] !== undefined
+    ) {
+        input.value = formData[input.name];
+    }
+
+});
+
+
+// Restore the correct authentication panel
+const initialPanel = container.dataset.initialPanel;
+
+if (initialPanel === 'signin') {
+    showSignIn();
+
+} else if (initialPanel === 'signup') {
+    showSignUp();
+
+} else if (sessionStorage.getItem('authPanel') === 'signup') {
+    container.classList.add('right-panel-active');
+
+} else {
+    showSignIn();
+}

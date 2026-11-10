@@ -36,15 +36,23 @@
             </a>
         </div>
     </nav>
-
+    
 
     <!-- Authentication Container -->
-    <div class="container" id="container">
-
+    {% if messages %}
+    {% for message in messages %}
+        <div class="alert {% if message.tags == 'error' %}alert-danger{% else %}alert-{{ message.tags }}{% endif %}" role="alert">
+            {{ message }}
+        </div>
+    {% endfor %}
+    {% endif %}
         <!-- Sign Up Form -->
+         <div class="container"
+     id="container"
+     data-initial-panel="{{ initial_panel }}">
         <div class="form-container sign-up-container">
 
-            <form method="POST" action="#">
+            <form method="POST" action="{% url "register_view" %}">
                 {% csrf_token %}
 
                 <h1>Create Account</h1>
@@ -69,7 +77,12 @@
 
                     <input type="tel" name="phone_number"
                            placeholder="Phone Number">
-
+                    <input
+                    name="date_of_birth"
+                    type="date"
+                    id="date_of_birth"
+                    required
+                    >
                     <select name="category" id="category" required>
                         <option value="" disabled selected>
                             Select Resident Category
@@ -108,6 +121,7 @@
                 </button>
 
             </form>
+            {{ form_data|json_script:"form-data" }}
         </div>
 
 
