@@ -30,7 +30,8 @@ class User(AbstractUser):
         BUSINESS = "BUSINESS", "Business Professionals"
         MEDICAL = "MEDICAL", "Medical Visitors"
         TEMPORARY = "TEMPORARY", "Temporary Residents"
-        OTHER = "OTHER", "Others"
+
+
     class Gender(models.TextChoices):
         MALE = "MALE", "Male"
         FEMALE = "FEMALE", "Female"
@@ -69,11 +70,10 @@ class User(AbstractUser):
         blank = True
     )
     
-    other_category = models.CharField(max_length=150 , blank=True) 
 
     #category details saved as JSONB format so we can retrieve without being creating a new table or relation
     category_details = models.JSONField(default=dict, blank=True)
-
+    profile_completed = models.BooleanField(default=False)
 
     objects= CustomUserManager()
     def __str__(self):

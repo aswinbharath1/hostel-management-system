@@ -1,0 +1,112 @@
+
+{% extends 'residents/base.html' %}
+
+{% block title %}My Profile | HostelMate{% endblock %}
+
+{% block content %}
+
+<div class="dashboard-heading">
+    <div>
+        <h2>My Profile</h2>
+        <p>View your personal and contact information.</p>
+    </div>
+</div>
+
+<div class="profile-container">
+
+    <!-- Personal Information -->
+    <div class="dashboard-panel profile-panel">
+
+        <div class="profile-section-heading">
+            <i class="fa-solid fa-user"></i>
+            <h5>Personal Information</h5>
+        </div>
+
+        <div class="profile-details">
+
+            <div class="profile-item">
+                <label>Full Name</label>
+                <p>{{ request.user.full_name|default:"Not provided" }}</p>
+            </div>
+
+            <div class="profile-item">
+                <label>Email Address</label>
+                <p>{{ request.user.email }}</p>
+            </div>
+
+            <div class="profile-item">
+                <label>Phone Number</label>
+                <p>{{ request.user.phone_number|default:"Not provided" }}</p>
+            </div>
+
+            <div class="profile-item">
+                <label>Date of Birth</label>
+                <p>{{ request.user.date_of_birth|date:"d M Y"|default:"Not provided" }}</p>
+            </div>
+
+            <div class="profile-item">
+                <label>Gender</label>
+                <p>{{ request.user.get_gender_display|default:"Not provided" }}</p>
+            </div>
+
+            <div class="profile-item">
+                <label>Resident Category</label>
+                <p>{{ request.user.get_category_display|default:"Not provided" }}</p>
+            </div>
+
+            <div class="profile-item full-width">
+                <label>Address</label>
+                <p>{{ request.user.address|default:"Not provided" }}</p>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Emergency Contact -->
+    <div class="dashboard-panel profile-panel">
+
+        <div class="profile-section-heading">
+            <i class="fa-solid fa-phone"></i>
+            <h5>Emergency Contact</h5>
+        </div>
+
+        <div class="profile-details">
+
+            <div class="profile-item">
+                <label>Contact Name</label>
+                <p>{{ request.user.emergency_contact_name|default:"Not provided" }}</p>
+            </div>
+
+            <div class="profile-item">
+                <label>Contact Number</label>
+                <p>{{ request.user.emergency_contact_number|default:"Not provided" }}</p>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Category Details -->
+    {% if request.user.category_details %}
+    <div class="dashboard-panel profile-panel">
+
+        <div class="profile-section-heading">
+            <i class="fa-solid fa-briefcase"></i>
+            <h5>Additional Information</h5>
+        </div>
+
+        <div class="profile-details">
+
+            {% for key, value in request.user.category_details.items %}
+            <div class="profile-item">
+                <label>{{ key|cut:"_"|title }}</label>
+                <p>{{ value }}</p>
+            </div>
+            {% endfor %}
+
+        </div>
+    </div>
+    {% endif %}
+
+</div>
+
+{% endblock %}

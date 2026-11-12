@@ -152,18 +152,6 @@ const categoryFormFields = {
                placeholder="Expected Duration (Days)"
                min="1"
                required>
-    `,
-
-    OTHER: `
-        <input type="text"
-               name="other_category"
-               placeholder="Specify Your Category"
-               required>
-
-        <input type="text"
-               name="other_purpose"
-               placeholder="Purpose of Stay"
-               required>
     `
 };
 
@@ -243,3 +231,18 @@ if (initialPanel === 'signin') {
 } else {
     showSignIn();
 }
+
+
+//PASSWORD HIDE AND SHOW
+var password = document.getElementById('fakePassword');
+var toggler = document.getElementById('toggler');
+showHidePassword = () => {
+if (password.type == 'password') {
+password.setAttribute('type', 'text');
+toggler.classList.add('fa-eye-slash');
+} else {
+toggler.classList.remove('fa-eye-slash');
+password.setAttribute('type', 'password');
+}
+};
+toggler.addEventListener('click', showHidePassword);

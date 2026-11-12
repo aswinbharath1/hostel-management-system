@@ -465,3 +465,17 @@ form select:focus {
     }
 
 }
+/* PASSWORK HIDE AND SHOW  */
+
+body .password-field {
+position: relative;
+}
+
+
+body .password-field #toggler {
+position: absolute;
+right: 20px;
+top: 50%;
+transform: translateY(-50%);
+cursor: pointer;
+}

@@ -1,0 +1,155 @@
+
+{% extends "socialaccount/base_entrance.html" %}
+{% load static i18n %}
+
+{% load allauth %}
+
+{% block head_title %}
+    {% trans "Continue to HostelMate" %}
+{% endblock head_title %}
+
+{% block extra_head %}
+    {{ block.super }}
+    <style>
+        .hostelmate-auth-logo {
+    width: 130px;
+    height: 110px;
+    object-fit: contain;
+    display: block;
+    margin: 5px auto 20px;
+}
+
+@media (max-width: 576px) {
+    .hostelmate-auth-logo {
+        width: 110px;
+        height: 95px;
+        margin-bottom: 16px;
+    }
+}
+        .google-login-title {
+            font-size: 27px;
+            font-weight: 700;
+            color: #0F0E47;
+            margin-bottom: 14px;
+        }
+
+        .google-login-description {
+            color: #68688A;
+            font-size: 14px;
+            line-height: 1.7;
+            margin-bottom: 25px;
+        }
+
+        .google-login-form button {
+            width: 100%;
+            min-height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            padding: 12px 20px;
+            background: #FFFFFF;
+            color: #3C4043;
+            border: 1px solid #DADCE0;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s ease,
+                        box-shadow 0.2s ease;
+        }
+
+        .google-login-form button:hover {
+            background: #F8FAFF;
+            border-color: #C5C9D0;
+            box-shadow: 0 1px 3px rgba(60, 64, 67, 0.2);
+        }
+
+        .google-logo {
+            width: 20px;
+            height: 20px;
+            flex-shrink: 0;
+        }
+
+        .google-login-footer {
+            margin-top: 22px;
+            text-align: center;
+            font-size: 12px;
+            color: #80868B;
+        }
+
+        @media (max-width: 576px) {
+            .google-login-title {
+                font-size: 23px;
+            }
+
+            .google-login-description {
+                font-size: 13px;
+            }
+        }
+    </style>
+{% endblock extra_head %}
+
+{% block content %}
+
+    <div class="text-center">
+
+        {% if process == "connect" %}
+            <h1 class="google-login-title">
+                Connect Google Account
+            </h1>
+
+            <p class="google-login-description">
+                Connect your Google account securely with HostelMate.
+            </p>
+        {% else %}
+            <h1 class="google-login-title">
+                Continue to HostelMate
+            </h1>
+            <img src="{% static 'accounts/images/hostel_mate.png' %}"
+                alt="HostelMate Logo"
+                class="hostelmate-auth-logo">
+            <p class="google-login-description">
+                Sign in securely using your Google Account.
+            </p>
+        {% endif %}
+
+    </div>
+
+    <div class="google-login-form">
+
+        {% element form method="post" no_visible_fields=True %}
+            {% slot actions %}
+
+                {% csrf_token %}
+
+                {% element button type="submit" %}
+
+                    <svg class="google-logo"
+                         xmlns="http://www.w3.org/2000/svg"
+                         viewBox="0 0 48 48"
+                         aria-hidden="true">
+                        <path fill="#EA4335"
+                              d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+                        <path fill="#4285F4"
+                              d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.73 7.18l7.67 5.95c4.48-4.14 7.1-10.23 7.1-17.6z"/>
+                        <path fill="#FBBC05"
+                              d="M10.53 28.59A14.4 14.4 0 0 1 9.75 24c0-1.59.27-3.13.76-4.59l-7.98-6.19A23.9 23.9 0 0 0 0 24c0 3.86.93 7.51 2.56 10.78l7.97-6.19z"/>
+                        <path fill="#34A853"
+                              d="M24 48c6.48 0 11.93-2.13 15.9-5.85l-7.67-5.95c-2.13 1.44-4.86 2.3-8.23 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.97 6.19C6.51 42.62 14.62 48 24 48z"/>
+                    </svg>
+
+                    {% trans "Continue with Google" %}
+
+                {% endelement %}
+
+            {% endslot %}
+        {% endelement %}
+
+    </div>
+
+    <div class="google-login-footer">
+        Secure authentication powered by Google
+    </div>
+
+{% endblock content %}

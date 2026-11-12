@@ -1,0 +1,91 @@
+
+{% extends 'residents/base.html' %}
+
+{% block title %}Resident Dashboard | HostelMate{% endblock %}
+
+{% block content %}
+
+<div class="dashboard-heading">
+    <div>
+        <h1 style='color:red'>Welcome, </h1>
+         <h2 style="color: #272757"> {{ request.user.full_name|default:request.user.username }}<h2> 
+    </div>
+</div>
+
+<!-- Summary Cards -->
+<div class="row g-4 mt-2">
+
+    <div class="col-md-6 col-xl-3">
+        <div class="summary-card">
+            <div class="card-icon">
+                <i class="fa-solid fa-bed"></i>
+            </div>
+            <div>
+                <p>My Room</p>
+                <h4>Not Allocated</h4>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6 col-xl-3">
+        <div class="summary-card">
+            <div class="card-icon">
+                <i class="fa-solid fa-wallet"></i>
+            </div>
+            <div>
+                <p>Pending Rent</p>
+                <h4>₹ 0.00</h4>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6 col-xl-3">
+        <div class="summary-card">
+            <div class="card-icon">
+                <i class="fa-solid fa-comments"></i>
+            </div>
+            <div>
+                <p>Complaints</p>
+                <h4>0 Pending</h4>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6 col-xl-3">
+        <div class="summary-card">
+            <div class="card-icon">
+                <i class="fa-solid fa-calendar-check"></i>
+            </div>
+            <div>
+                <p>Stay Status</p>
+                <h4>Not Started</h4>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- Profile and Notices -->
+<div class="row g-4 mt-2">
+
+    <div class="col-lg-7">
+        <div class="dashboard-panel">
+            <h5>My Profile</h5>
+
+            <p><strong>Name:</strong> {{ request.user.full_name }}</p>
+            <p><strong>Email:</strong> {{ request.user.email }}</p>
+            <p><strong>Phone:</strong> {{ request.user.phone_number }}</p>
+            <p><strong>Category:</strong> {{ request.user.get_category_display }}</p>
+        </div>
+    </div>
+
+    <div class="col-lg-5">
+        <div class="dashboard-panel">
+            <h5>Recent Notices</h5>
+            <p class="text-muted">No notices available currently.</p>
+        </div>
+    </div>
+
+</div>
+
+{% endblock %}
