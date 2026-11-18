@@ -29,3 +29,4 @@ Thumbs.db
 
 #google apis
 /client_secret_51814118-r75u5egolp0q8hqf1b80sg8uffmooppj.apps.googleusercontent.com.json
+client_secret_*.json

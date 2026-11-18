@@ -1,0 +1,220 @@
+
+{% extends 'wardens/base.html' %}
+
+{% block title %}Residents | HostelMate{% endblock %}
+
+{% block content %}
+
+<div class="dashboard-heading">
+    <div>
+        <h2>Residents</h2>
+        <p>View and manage registered residents</p>
+    </div>
+</div>
+
+<div class="resident-table-panel mt-4">
+
+    <!-- Table Toolbar -->
+    <div class="resident-table-toolbar">
+
+        <div>
+            <h5>Resident List</h5>
+            <p>{{ total_residents }} resident(s) found</p>
+        </div>
+
+        <form method="GET" class="resident-search-form">
+
+            <div class="resident-search">
+                <i class="fa-solid fa-magnifying-glass"></i>
+
+                <input
+                    type="text"
+                    name="search"
+                    placeholder="Search residents..."
+                    value="{{ search_query }}"
+                >
+            </div>
+
+            <input type="hidden" name="per_page" value="{{ per_page }}">
+
+            <button type="submit" class="resident-search-btn">
+                Search
+            </button>
+
+            {% if search_query %}
+                <a href="{% url 'warden_resident_list' %}?per_page={{ per_page }}"
+                   class="resident-reset-btn">
+                    Clear
+                </a>
+            {% endif %}
+
+        </form>
+
+    </div>
+
+    <!-- Residents Table -->
+    <div class="table-responsive">
+
+        <table class="table resident-table mb-0">
+
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Resident</th>
+                    <th>Phone Number</th>
+                    <th>Category</th>
+                    <th>Gender</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+                {% for resident in residents %}
+                <tr>
+
+                    <td>
+                        {{ page_obj.start_index|add:forloop.counter0 }}
+                    </td>
+
+                    <td>
+                        <div class="resident-name">
+                            <div class="resident-avatar">
+                                {{ resident.full_name|default:resident.username|first|upper }}
+                            </div>
+
+                            <div>
+                                <a href="{% url 'warden_resident_detail' resident.id %}"
+                                    class="resident-detail-link">
+                                    {{ resident.full_name|default:resident.username }}
+                                </a>
+                                <small>{{ resident.email }}</small>
+                            </div>
+                        </div>
+                    </td>
+
+                    <td>{{ resident.phone_number|default:"—" }}</td>
+
+                    <td>
+                        <span class="resident-category">
+                            {{ resident.get_category_display|default:"—" }}
+                        </span>
+                    </td>
+
+                    <td>{{ resident.get_gender_display|default:"—" }}</td>
+
+                </tr>
+
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="text-center py-5">
+                        <i class="fa-solid fa-users fa-2x text-muted mb-3"></i>
+                        <p class="mb-0">No residents found.</p>
+                    </td>
+                </tr>
+                {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+    <!-- Table Footer -->
+    <div class="resident-table-footer">
+
+        <div class="resident-pagination-info">
+            Showing
+            {% if page_obj.paginator.count %}
+                {{ page_obj.start_index }}–{{ page_obj.end_index }}
+            {% else %}
+                0
+            {% endif %}
+            of {{ total_residents }} residents
+        </div>
+
+        <div class="resident-pagination-controls">
+
+            <!-- Records per page -->
+            <form method="GET" class="per-page-form">
+
+                <label for="per_page">Rows:</label>
+
+                <select name="per_page" id="per_page"
+                        onchange="this.form.submit()">
+
+                    <option value="10"
+                        {% if per_page == '10' %}selected{% endif %}>
+                        10
+                    </option>
+
+                    <option value="15"
+                        {% if per_page == '15' %}selected{% endif %}>
+                        15
+                    </option>
+                    <option value="25"
+                        {% if per_page == '25' %}selected{% endif %}>
+                        25
+                    </option>
+                    <option value="50"
+                        {% if per_page == '50' %}selected{% endif %}>
+                        50
+                    </option>
+
+                </select>
+
+                <input type="hidden" name="search" value="{{ search_query }}">
+
+            </form>
+
+            <!-- Pagination -->
+            <nav aria-label="Resident pagination">
+
+                <ul class="pagination mb-0">
+
+                    {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link"
+                           href="?page={{ page_obj.previous_page_number }}&per_page={{ per_page }}&search={{ search_query|urlencode }}">
+                            <i class="fa-solid fa-chevron-left"></i>
+                        </a>
+                    </li>
+                    {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link">
+                            <i class="fa-solid fa-chevron-left"></i>
+                        </span>
+                    </li>
+                    {% endif %}
+
+                    <li class="page-item active">
+                        <span class="page-link">
+                            {{ page_obj.number }} / {{ page_obj.paginator.num_pages|default:1 }}
+                        </span>
+                    </li>
+
+                    {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link"
+                           href="?page={{ page_obj.next_page_number }}&per_page={{ per_page }}&search={{ search_query|urlencode }}">
+                            <i class="fa-solid fa-chevron-right"></i>
+                        </a>
+                    </li>
+                    {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link">
+                            <i class="fa-solid fa-chevron-right"></i>
+                        </span>
+                    </li>
+                    {% endif %}
+
+                </ul>
+
+            </nav>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

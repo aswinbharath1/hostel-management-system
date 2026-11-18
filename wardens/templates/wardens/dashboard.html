@@ -1,0 +1,94 @@
+{% extends 'wardens/base.html' %}
+
+{% block title %}Warden Dashboard | HostelMate{% endblock %}
+
+{% block content %}
+
+<div class="dashboard-heading">
+    <div>
+        <h2>Warden Dashboard</h2>
+        <p>Welcome back, {{ request.user.full_name|default:request.user.username }}</p>
+    </div>
+</div>
+
+<!-- Summary Cards -->
+<div class="row g-4 mt-2">
+
+    <div class="col-xl-3 col-md-6">
+        <div class="summary-card">
+            <div class="card-icon">
+                <i class="fa-solid fa-users"></i>
+            </div>
+            <div>
+                <p>Total Residents</p>
+                <h4>{{ total_residents }}</h4>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6">
+        <div class="summary-card">
+            <div class="card-icon">
+                <i class="fa-solid fa-building"></i>
+            </div>
+            <div>
+                <p>Total Rooms</p>
+                <h4>{{ total_rooms }}</h4>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6">
+        <div class="summary-card">
+            <div class="card-icon">
+                <i class="fa-solid fa-bed"></i>
+            </div>
+            <div>
+                <p>Occupied Beds</p>
+                <h4>{{ occupied_beds }}</h4>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6">
+        <div class="summary-card">
+            <div class="card-icon">
+                <i class="fa-solid fa-door-open"></i>
+            </div>
+            <div>
+                <p>Available Beds</p>
+                <h4>{{ available_beds }}</h4>
+            </div>
+        </div>
+    </div>
+
+</div>
+<!-- Bed Occupancy Chart -->
+<div class="row mt-4">
+    <div class="col-lg-6">
+       
+        <div class="dashboard-panel">
+            <h5>Bed Occupancy Overview</h5>
+            
+            <div id="bed-occupancy-chart"></div>
+            
+            <div class="text-center mt-2">
+                <small class="text-muted">
+                    Overview of occupied and available beds
+                </small>
+            </div>
+        </div>
+    </div>
+     <div class="col-lg-6">
+            <div class="dashboard-panel">
+                <h5>Resident Categories</h5>
+                <div id="resident-category-chart"></div>
+            </div>
+        </div>
+</div>
+
+
+{{ bed_chart_data|json_script:"bed-occupancy-data" }}
+{{ category_chart_data|json_script:"resident-category-data" }}
+
+{% endblock %}

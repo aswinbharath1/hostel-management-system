@@ -1,0 +1,124 @@
+
+{% extends 'wardens/base.html' %}
+
+{% block title %}Room Allocation{% endblock %}
+
+{% block content %}
+
+<div class="dashboard-header">
+    <div>
+        <h2>Room Allocation</h2>
+        <p>Manage residents and their allocated beds.</p>
+    </div>
+</div>
+
+<div class="resident-table-panel">
+
+    <div class="resident-table-toolbar">
+        <form method="GET" class="resident-search">
+            <i class="fa-solid fa-search"></i>
+            <input
+                type="text"
+                name="search"
+                placeholder="Search resident, room or bed..."
+                value="{{ search_query }}"
+            >
+            <input type="hidden" name="per_page" value="{{ per_page }}">
+            <button type="submit" class="resident-search-btn">Search</button>
+        </form>
+
+        <a href="#" class="btn btn-primary">
+            <i class="fa-solid fa-plus"></i> Allocate Bed
+        </a>
+    </div>
+
+    <div class="table-responsive">
+        <table class="resident-table">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Resident</th>
+                    <th>Building</th>
+                    <th>Floor</th>
+                    <th>Room</th>
+                    <th>Bed</th>
+                    <th>Allocated On</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for allocation in allocations %}
+                <tr>
+                    <td>{{ page_obj.start_index|add:forloop.counter0 }}</td>
+
+                    <td>
+                        <div class="resident-info">
+                            <div class="resident-avatar">
+                                {{ allocation.resident.full_name|slice:":1"|upper }}
+                            </div>
+                            <div>
+                                <strong>{{ allocation.resident.full_name }}</strong>
+                                <small>{{ allocation.resident.phone_number }}</small>
+                            </div>
+                        </div>
+                    </td>
+
+                    <td>{{ allocation.bed.room.floor.building.name }}</td>
+                    <td>{{ allocation.bed.room.floor.floor_number }}</td>
+                    <td>{{ allocation.bed.room.room_number }}</td>
+                    <td>{{ allocation.bed.bed_number }}</td>
+                    <td>{{ allocation.allocated_on|date:"d M Y" }}</td>
+
+                    <td>
+                        <span class="category-badge">Occupied</span>
+                    </td>
+                </tr>
+
+                {% empty %}
+                <tr>
+                    <td colspan="8" class="text-center py-4">
+                        No active room allocations found.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="resident-table-footer">
+        <div>
+            Showing {{ page_obj.start_index|default:0 }} -
+            {{ page_obj.end_index|default:0 }}
+            of {{ total_allocations }} allocations
+        </div>
+
+        <div class="pagination-controls">
+
+            <form method="GET">
+                <input type="hidden" name="search" value="{{ search_query }}">
+                <label>Show</label>
+                <select name="per_page" onchange="this.form.submit()">
+                    <option value="10" {% if per_page == '10' %}selected{% endif %}>10</option>
+                    <option value="15" {% if per_page == '15' %}selected{% endif %}>15</option>
+                    <option value="25" {% if per_page == '25' %}selected{% endif %}>25</option>
+                    <option value="50" {% if per_page == '50' %}selected{% endif %}>50</option>
+                </select>
+            </form>
+
+            {% if page_obj.has_previous %}
+                <a href="?search={{ search_query|urlencode }}&per_page={{ per_page }}&page={{ page_obj.previous_page_number }}">Previous</a>
+            {% endif %}
+
+            <span>Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+
+            {% if page_obj.has_next %}
+                <a href="?search={{ search_query|urlencode }}&per_page={{ per_page }}&page={{ page_obj.next_page_number }}">Next</a>
+            {% endif %}
+
+        </div>
+    </div>
+
+</div>
+
+{% endblock %}

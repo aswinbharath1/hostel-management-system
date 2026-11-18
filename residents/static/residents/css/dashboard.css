@@ -799,8 +799,43 @@ button {
     }
 }
 
+#editProfileModal .modal-dialog {
+    max-height: calc(100vh - 40px);
+}
 
+#editProfileModal .modal-content {
+    max-height: calc(100vh - 40px);
+}
 
+#editProfileModal .modal-body {
+    overflow-y: auto;
+    overscroll-behavior: contain;
+}
+
+/* Fix Edit Profile Modal Scrolling */
+
+#editProfileModal .modal-content {
+    max-height: calc(100vh - 3.5rem);
+}
+
+#editProfileModal .modal-content > form {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: hidden;
+}
+
+#editProfileModal .modal-body {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+}
+
+#editProfileModal .modal-footer {
+    flex-shrink: 0;
+}
 
 /* =========================================
    SMALL MOBILE SCREENS

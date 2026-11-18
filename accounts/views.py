@@ -7,6 +7,8 @@ from django.contrib.auth.password_validation import validate_password
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_POST
+import re
+from datetime import date
 
 
 User = get_user_model()
@@ -183,7 +185,7 @@ def complete_profile(request):
         'BUSINESS': ['business_name', 'business_type'],
         'MEDICAL': ['hospital_name', 'visit_purpose'],
         'TEMPORARY': ['stay_purpose', 'stay_duration'],
-    }
+    }  
 
     if request.method == 'POST':
         full_name = request.POST.get('full_name', '').strip()
@@ -250,4 +252,123 @@ def complete_profile(request):
         'user': user,
         'category_choices': User.Category.choices,
         'gender_choices': User.Gender.choices,
+    })
+
+@login_required
+def edit_profile(request):
+    user = request.user
+    User = get_user_model()
+
+    category_fields = {
+        'STUDENT': ['institution_name', 'course', 'study_year'],
+        'JOB_SEEKER': ['qualification', 'preferred_job_location'],
+        'WORKING_PROFESSIONAL': ['company_name', 'designation', 'work_location'],
+        'EXAM_ASPIRANT': ['exam_name', 'coaching_institute'],
+        'INTERN': ['organisation', 'training_details'],
+        'BUSINESS': ['business_name', 'business_type'],
+        'MEDICAL': ['hospital_name', 'visit_purpose'],
+        'TEMPORARY': ['stay_purpose', 'stay_duration'],
+    }
+
+    if request.method == 'POST':
+        full_name = request.POST.get('full_name', '').strip()
+        phone_number = request.POST.get('phone_number', '').strip()
+        date_of_birth = request.POST.get('date_of_birth', '')
+        gender = request.POST.get('gender', '')
+        address = request.POST.get('address', '').strip()
+        emergency_contact_name = request.POST.get('emergency_contact_name', '').strip()
+        emergency_contact_number = request.POST.get('emergency_contact_number', '').strip()
+        category = request.POST.get('category', '')
+
+        errors = []
+
+        # Full name validation
+        if not full_name:
+            errors.append('Full name is required.')
+
+        # Phone number validation
+        if not re.fullmatch(r'[0-9]{10}', phone_number):
+            errors.append('Phone number must contain exactly 10 digits.')
+
+        # Emergency contact validation
+        if not re.fullmatch(r'[0-9]{10}', emergency_contact_number):
+            errors.append('Emergency contact number must contain exactly 10 digits.')
+
+        # Date of birth validation
+        dob = parse_date(date_of_birth)
+
+        if not dob:
+            errors.append('Please enter a valid date of birth.')
+        elif dob > date.today():
+            errors.append('Date of birth cannot be in the future.')
+
+        # Gender validation
+        if gender not in User.Gender.values:
+            errors.append('Please select a valid gender.')
+
+        # Category validation
+        if category not in User.Category.values:
+            errors.append('Please select a valid resident category.')
+
+        # Address validation
+        if not address:
+            errors.append('Address is required.')
+
+
+        
+        if not all([
+            full_name, phone_number, date_of_birth, gender,
+            address, emergency_contact_name,
+            emergency_contact_number, category
+        ]):
+            errors.append('Please fill in all required fields.')
+
+        dob = parse_date(date_of_birth)
+
+        if date_of_birth and not dob:
+            errors.append('Please enter a valid date of birth.')
+
+        if gender not in User.Gender.values:
+            errors.append('Please select a valid gender.')
+
+        if category not in User.Category.values:
+            errors.append('Please select a valid resident category.')
+
+        category_details = {}
+
+        if category in category_fields:
+            for field in category_fields[category]:
+                value = request.POST.get(field, '').strip()
+
+                if not value:
+                    errors.append(
+                        f'{field.replace("_", " ").title()} is required.'
+                    )
+
+                category_details[field] = value
+
+        if not errors:
+            user.full_name = full_name
+            user.phone_number = phone_number
+            user.date_of_birth = dob
+            user.gender = gender
+            user.address = address
+            user.emergency_contact_name = emergency_contact_name
+            user.emergency_contact_number = emergency_contact_number
+            user.category = category
+            user.category_details = category_details
+
+            user.save()
+
+            messages.success(request, 'Your profile has been updated successfully!')
+            return redirect('resident_profile')
+
+        for error in errors:
+            messages.error(request, error)
+
+    return render(request, 'accounts/complete_profile.html', {
+        'user': user,
+        'category_choices': User.Category.choices,
+        'gender_choices': User.Gender.choices,
+        'is_edit': True,
     })

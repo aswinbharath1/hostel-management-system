@@ -1,0 +1,184 @@
+
+{% extends 'wardens/base.html' %}
+
+{% block title %}Resident Details | HostelMate{% endblock %}
+
+{% block content %}
+
+<div class="dashboard-heading">
+    <div>
+        <h2>Resident Details</h2>
+        <p>View complete resident information</p>
+    </div>
+
+    <a href="{% url 'warden_resident_list' %}" class="btn btn-outline-secondary">
+        <i class="fa-solid fa-arrow-left me-2"></i>Back to Residents
+    </a>
+</div>
+
+<div class="profile-container">
+
+    <!-- Personal Information -->
+    <div class="dashboard-panel profile-panel">
+
+        <div class="profile-section-heading">
+            <i class="fa-solid fa-user"></i>
+            <h5>Personal Information</h5>
+        </div>
+
+        <div class="profile-details">
+
+            <div class="profile-item">
+                <label>Full Name</label>
+                <p>{{ resident.full_name|default:"—" }}</p>
+            </div>
+
+            <div class="profile-item">
+                <label>Email Address</label>
+                <p>{{ resident.email|default:"—" }}</p>
+            </div>
+
+            <div class="profile-item">
+                <label>Phone Number</label>
+                <p>{{ resident.phone_number|default:"—" }}</p>
+            </div>
+
+            <div class="profile-item">
+                <label>Date of Birth</label>
+                <p>{{ resident.date_of_birth|date:"d M Y"|default:"—" }}</p>
+            </div>
+
+            <div class="profile-item">
+                <label>Gender</label>
+                <p>{{ resident.get_gender_display|default:"—" }}</p>
+            </div>
+
+            <div class="profile-item">
+                <label>Resident Category</label>
+                <p>{{ resident.get_category_display|default:"—" }}</p>
+            </div>
+
+            <div class="profile-item full-width">
+                <label>Address</label>
+                <p>{{ resident.address|default:"—" }}</p>
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- Emergency Contact -->
+    <div class="dashboard-panel profile-panel">
+
+        <div class="profile-section-heading">
+            <i class="fa-solid fa-phone"></i>
+            <h5>Emergency Contact</h5>
+        </div>
+
+        <div class="profile-details">
+
+            <div class="profile-item">
+                <label>Contact Name</label>
+                <p>{{ resident.emergency_contact_name|default:"—" }}</p>
+            </div>
+
+            <div class="profile-item">
+                <label>Contact Number</label>
+                <p>{{ resident.emergency_contact_number|default:"—" }}</p>
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- Category Details -->
+    <div class="dashboard-panel profile-panel">
+
+        <div class="profile-section-heading">
+            <i class="fa-solid fa-circle-info"></i>
+            <h5>Category Information</h5>
+        </div>
+
+        {% if resident.category_details %}
+
+            <div class="profile-details">
+
+                {% for key, value in resident.category_details.items %}
+                <div class="profile-item">
+                    <label>{{ key|cut:"_"|title }}</label>
+                    <p>{{ value|default:"—" }}</p>
+                </div>
+                {% endfor %}
+
+            </div>
+
+        {% else %}
+            <p class="text-muted mb-0">No additional category information available.</p>
+        {% endif %}
+
+    </div>
+
+
+    <!-- Room Allocation -->
+    <div class="dashboard-panel profile-panel">
+
+        <div class="profile-section-heading">
+            <i class="fa-solid fa-bed"></i>
+            <h5>Room Allocation</h5>
+        </div>
+
+        {% if active_allocation %}
+
+            <div class="profile-details">
+
+                <div class="profile-item">
+                    <label>Building</label>
+                    <p>{{ active_allocation.bed.room.floor.building.name }}</p>
+                </div>
+
+                <div class="profile-item">
+                    <label>Floor</label>
+                    <p>{{ active_allocation.bed.room.floor.floor_number }}</p>
+                </div>
+
+                <div class="profile-item">
+                    <label>Room Number</label>
+                    <p>{{ active_allocation.bed.room.room_number }}</p>
+                </div>
+
+                <div class="profile-item">
+                    <label>Bed Number</label>
+                    <p>{{ active_allocation.bed.bed_number }}</p>
+                </div>
+
+                <div class="profile-item">
+                    <label>Monthly Rent</label>
+                    <p>₹{{ active_allocation.bed.monthly_rent }}</p>
+                </div>
+
+                <div class="profile-item">
+                    <label>Allocated On</label>
+                    <p>{{ active_allocation.allocated_on|date:"d M Y" }}</p>
+                </div>
+
+            </div>
+
+            <div class="mt-4">
+                <span class="badge bg-success">Currently Allocated</span>
+            </div>
+
+        {% else %}
+
+            <p class="text-muted mb-0">
+                This resident does not have an active room allocation.
+            </p>
+
+        {% endif %}
+
+    </div>
+
+</div>
+
+{% endblock %}

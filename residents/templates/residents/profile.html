@@ -10,6 +10,11 @@
         <h2>My Profile</h2>
         <p>View your personal and contact information.</p>
     </div>
+    <button type="button" class="btn btn-primary"
+        data-bs-toggle="modal" data-bs-target="#editProfileModal">
+        <i class="fa-solid fa-pen-to-square"></i>
+        Edit Profile
+    </button>   
 </div>
 
 <div class="profile-container">
@@ -108,5 +113,226 @@
     {% endif %}
 
 </div>
+
+<!-- Edit Profile Modal -->
+<div class="modal fade" id="editProfileModal" tabindex="-1"
+     aria-labelledby="editProfileModalLabel" aria-hidden="true">
+
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <h5 class="modal-title" id="editProfileModalLabel">
+                    <i class="fa-solid fa-user-pen me-2"></i>
+                    Edit Profile
+                </h5>
+                <button type="button" class="btn-close"
+                        data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <form method="POST" action="{% url 'edit_profile' %}">
+                {% csrf_token %}
+
+                <div class="modal-body">
+
+                    <h6 class="mb-3">Personal Information</h6>
+
+                    <div class="row g-3">
+
+                        <div class="col-md-6">
+                            <label class="form-label">Full Name *</label>
+                            <input type="text" name="full_name"
+                                   class="form-control"
+                                   value="{{ request.user.full_name }}" required>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label">Email</label>
+                            <input type="email" class="form-control"
+                                   value="{{ request.user.email }}" readonly>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label">Phone Number *</label>
+                            
+                            <input type="tel"
+                                name="phone_number"
+                                class="form-control"
+                                maxlength="10"
+                                pattern="[0-9]{10}"
+                                inputmode="numeric"
+                                title="Enter exactly 10 digits"
+                                value="{{ request.user.phone_number }}"
+                                required>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label">Date of Birth *</label>
+                            <input type="date" name="date_of_birth"
+                                   class="form-control"
+                                   value="{{ request.user.date_of_birth|date:'Y-m-d' }}"
+                                   required>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label">Gender *</label>
+                            <select name="gender" class="form-select" required>
+                                {% for value, label in gender_choices %}
+                                    <option value="{{ value }}"
+                                        {% if request.user.gender == value %}selected{% endif %}>
+                                        {{ label }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label">Resident Category *</label>
+                            <select name="category" id="editCategory"
+                                    class="form-select" required>
+                                {% for value, label in category_choices %}
+                                    <option value="{{ value }}"
+                                        {% if request.user.category == value %}selected{% endif %}>
+                                        {{ label }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label">Address *</label>
+                            <textarea name="address" class="form-control"
+                                      rows="3" required>{{ request.user.address }}</textarea>
+                        </div>
+
+                    </div>
+
+                    <hr class="my-4">
+
+                    <h6 class="mb-3">Emergency Contact</h6>
+
+                    <div class="row g-3">
+
+                        <div class="col-md-6">
+                            <label class="form-label">Contact Name *</label>
+                            <input type="text" name="emergency_contact_name"
+                                   class="form-control"
+                                   value="{{ request.user.emergency_contact_name }}" required>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label">Contact Number *</label>
+                            
+                            <input type="tel"
+                                name="emergency_contact_number"
+                                class="form-control"
+                                maxlength="10"
+                                pattern="[0-9]{10}"
+                                inputmode="numeric"
+                                title="Enter exactly 10 digits"
+                                value="{{ request.user.emergency_contact_number }}"
+                                required>
+                        </div>
+
+                    </div>
+
+                    <hr class="my-4">
+
+                    <h6 class="mb-3">Additional Information</h6>
+                    <div id="editCategoryFields"></div>
+
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary"
+                            data-bs-dismiss="modal">Cancel</button>
+
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fa-solid fa-floppy-disk me-1"></i>
+                        Save Changes
+                    </button>
+                </div>
+
+            </form>
+
+        </div>
+    </div>
+</div>
+
+<script>
+
+const editCategoryFields = {
+    STUDENT: [
+        ['institution_name', 'Institution Name'],
+        ['course', 'Course'],
+        ['study_year', 'Study Year']
+    ],
+    JOB_SEEKER: [
+        ['qualification', 'Qualification'],
+        ['preferred_job_location', 'Preferred Job Location']
+    ],
+    WORKING_PROFESSIONAL: [
+        ['company_name', 'Company Name'],
+        ['designation', 'Designation'],
+        ['work_location', 'Work Location']
+    ],
+    EXAM_ASPIRANT: [
+        ['exam_name', 'Exam Name'],
+        ['coaching_institute', 'Coaching Institute']
+    ],
+    INTERN: [
+        ['organisation', 'Organisation'],
+        ['training_details', 'Training Details']
+    ],
+    BUSINESS: [
+        ['business_name', 'Business Name'],
+        ['business_type', 'Business Type']
+    ],
+    MEDICAL: [
+        ['hospital_name', 'Hospital Name'],
+        ['visit_purpose', 'Visit Purpose']
+    ],
+    TEMPORARY: [
+        ['stay_purpose', 'Stay Purpose'],
+        ['stay_duration', 'Stay Duration']
+    ]
+};
+    const savedCategoryDetails = {{ request.user.category_details|default:"{}"|safe }};
+    const editCategory = document.getElementById('editCategory');
+    const editCategoryContainer = document.getElementById('editCategoryFields');
+
+function showEditCategoryFields() {
+    const selectedCategory = editCategory.value;
+    editCategoryContainer.innerHTML = '';
+
+    const fields = editCategoryFields[selectedCategory] || [];
+
+    fields.forEach(([name, label]) => {
+        const wrapper = document.createElement('div');
+        wrapper.className = 'mb-3';
+
+        const fieldLabel = document.createElement('label');
+        fieldLabel.className = 'form-label';
+        fieldLabel.textContent = label + ' *';
+
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.name = name;
+        input.className = 'form-control';
+        input.value = savedCategoryDetails[name] || '';
+        input.required = true;
+
+        wrapper.appendChild(fieldLabel);
+        wrapper.appendChild(input);
+        editCategoryContainer.appendChild(wrapper);
+    });
+}
+
+editCategory.addEventListener('change', showEditCategoryFields);
+
+showEditCategoryFields();
+</script>
+
+
 
 {% endblock %}
