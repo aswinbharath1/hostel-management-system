@@ -1,24 +1,26 @@
 
 {% load static %}
-{% load socialaccount %}
+
+
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
+
     <meta charset="UTF-8">
+
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <title>HostelMate - Authentication</title>
 
-    <link rel="icon" type="image/png"
+    <link rel="icon"
+          type="image/png"
           href="{% static 'accounts/images/hostel_mate.png' %}">
 
     <!-- Bootstrap -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css"
           rel="stylesheet">
-    <!-- PASSWORD HIDE AND SHOW -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" 
-    integrity="sha512-Fo3rlrZj/k7ujTnHg4CGR2D7kSs0v4LLanw2qksYuRlEzO+tcaEPQogQ0KaoGN26/zrn20ImR1DfuLWnOo7aBA==" 
-    crossorigin="anonymous" referrerpolicy="no-referrer" />
+
     <!-- Font Awesome -->
     <link rel="stylesheet"
           href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
@@ -26,182 +28,311 @@
     <!-- Custom CSS -->
     <link rel="stylesheet"
           href="{% static 'accounts/css/auth.css' %}">
+
 </head>
 
 <body>
 
-    <!-- Navbar -->
+    <!-- NAVBAR -->
+
     <nav class="navbar">
+
         <div class="container-fluid">
+
             <a class="navbar-brand" href="#">
+
                 <img src="{% static 'accounts/images/hostel_mate.png' %}"
                      alt="HostelMate"
                      class="navbar-logo">
-            </a>
-        </div>
-    </nav>
-    
 
-    <!-- Authentication Container -->
-    {% if messages %}
-    {% for message in messages %}
-        <div class="alert {% if message.tags == 'error' %}alert-danger{% else %}alert-{{ message.tags }}{% endif %}" role="alert">
-            {{ message }}
+            </a>
+
         </div>
-    {% endfor %}
+
+    </nav>
+
+
+    <!-- MESSAGES -->
+
+    {% if messages %}
+
+        {% for message in messages %}
+
+            <div class="alert
+                {% if message.tags == 'error' %}
+                    alert-danger
+                {% else %}
+                    alert-{{ message.tags }}
+                {% endif %}"
+                role="alert">
+
+                {{ message }}
+
+            </div>
+
+        {% endfor %}
+
     {% endif %}
-        <!-- Sign Up Form -->
-         <div class="container"
-     id="container"
-     data-initial-panel="{{ initial_panel }}">
+
+
+    <!-- AUTHENTICATION CONTAINER -->
+
+    <div class="container"
+         id="container"
+         data-initial-panel="{{ initial_panel }}">
+
+
+        <!-- ===================================
+             SIGN UP FORM
+        =================================== -->
+
         <div class="form-container sign-up-container">
 
-            <form method="POST" action="{% url "register_view" %}">
+            <form method="POST"
+                  action="{% url 'register_view' %}">
+
                 {% csrf_token %}
 
                 <h1>Create Account</h1>
 
-                
-                
 
-                <!-- Registration Fields -->
+                <!-- REGISTRATION FIELDS -->
+
                 <div class="signup-fields">
 
-                    <input type="text" name="full_name"
-                           placeholder="Full Name" required>
+                    <input type="text"
+                           name="full_name"
+                           placeholder="Full Name"
+                           value="{{ form_data.full_name|default:'' }}"
+                           required>
 
-                    <input type="email" name="email"
-                           placeholder="Email" required>
 
-                    <input type="tel" name="phone_number"
-                           placeholder="Phone Number">
-                    <input
-                    name="date_of_birth"
-                    type="date"
-                    id="date_of_birth"
-                    required
-                    >
-                    <select name="gender" id="gender" required>
-                    
-                        <option value="" disabled selected>
+                    <input type="email"
+                           name="email"
+                           placeholder="Email"
+                           value="{{ form_data.email|default:'' }}"
+                           required>
+
+
+                    <input type="tel"
+                           name="phone_number"
+                           placeholder="Phone Number"
+                           value="{{ form_data.phone_number|default:'' }}">
+
+
+                    <input type="date"
+                           name="date_of_birth"
+                           id="date_of_birth"
+                           value="{{ form_data.date_of_birth|default:'' }}"
+                           required>
+
+
+                    <!-- GENDER -->
+
+                    <select name="gender"
+                            id="gender"
+                            required>
+
+                        <option value="" disabled
+                            {% if not form_data.gender %}selected{% endif %}>
                             Select Gender
                         </option>
-                        <option value="MALE">Male</option>
-                        <option value="FEMALE">Female</option>
-                        <option value="OTHER">Others</option>
+
+                        <option value="MALE"
+                            {% if form_data.gender == 'MALE' %}selected{% endif %}>
+                            Male
+                        </option>
+
+                        <option value="FEMALE"
+                            {% if form_data.gender == 'FEMALE' %}selected{% endif %}>
+                            Female
+                        </option>
+
+                        <option value="OTHER"
+                            {% if form_data.gender == 'OTHER' %}selected{% endif %}>
+                            Others
+                        </option>
+
                     </select>
-                    <select name="category" id="category" required>
-                        <option value="" disabled selected>
+
+
+                    <!-- RESIDENT CATEGORY -->
+
+                    <select name="category"
+                            id="category"
+                            required>
+
+                        <option value="" disabled
+                            {% if not form_data.category %}selected{% endif %}>
                             Select Resident Category
                         </option>
-                        <option value="STUDENT">Students</option>
-                        <option value="JOB_SEEKER">Job Seekers</option>
-                        <option value="WORKING_PROFESSIONAL">
-                            Working Professionals
-                        </option>
-                        <option value="EXAM_ASPIRANT">Exam Aspirants</option>
-                        <option value="INTERN">Interns & Trainees</option>
-                        <option value="BUSINESS">Business Professionals</option>
-                        <option value="MEDICAL">Medical Visitors</option>
-                        <option value="TEMPORARY">Temporary Residents</option>
+
+                        {% for category in categories %}
+
+                            <option value="{{ category.id }}"
+                                {% if form_data.category == category.id|stringformat:"s" %}selected{% endif %}>
+
+                                {{ category.name }}
+
+                            </option>
+
+                        {% endfor %}
+
                     </select>
 
-                    <!-- Dynamic Category Fields -->
+
+                    <!-- DYNAMIC CATEGORY FIELDS -->
+
                     <div id="category-fields"></div>
-                    <!-- Dynamic Category Fields
-                    <input type="password" name="password1"
-                           placeholder="Password" required>
 
-                    <input type="password" name="password2"
-                           placeholder="Confirm Password" required>
-                     -->
-                     <div class="password-field">
-                        <input type="password"  name="password1" id="fakePassword" placeholder="Enter Password" />
-                        <span><i id="toggler"class="far fa-eye"></i></span>
-                    </div>
-                     
+
+                    <!-- PASSWORD -->
+
                     <div class="password-field">
-                        <input type="password"  name="password1" id="fakePassword" placeholder="Confirm Password" />
-                        <span><i id="toggler"class="far fa-eye"></i></span>
+
+                        <input type="password"
+                               name="password1"
+                               id="signupPassword"
+                               placeholder="Enter Password"
+                               required>
+
+                        <span>
+                            <i class="far fa-eye"></i>
+                        </span>
+
                     </div>
+
+
+                    <!-- CONFIRM PASSWORD -->
+
+                    <div class="password-field">
+
+                        <input type="password"
+                               name="password2"
+                               id="confirmPassword"
+                               placeholder="Confirm Password"
+                               required>
+
+                    </div>
+
                 </div>
+                <!-- END SIGNUP FIELDS -->
 
-                <button type="submit">Sign Up</button>
-                <!-- Google Sign Up Placeholder -->
+
+                <!-- SIGN UP BUTTON -->
+
+                <button type="submit">
+                    Sign Up
+                </button>
+
+
                 
-                <div class="social-container">
-                    <span>or use your email for registration</span>
-                <a href="{% provider_login_url 'google' %}">
-                    <i class="fa-brands fa-google"></i>
-                    <br><h6>Continue with Google</h6>
-                </a>
-                </div>        
-                    
 
-                <!-- Mobile Switch -->
+
+                <!-- MOBILE SWITCH -->
+
                 <button type="button"
                         class="mobile-switch"
                         id="mobileSignIn">
+
                     Already have an account? Sign In
+
                 </button>
 
             </form>
+
+
+            <!-- JAVASCRIPT DATA -->
+
             {{ form_data|json_script:"form-data" }}
+
+            {{ category_fields_data|json_script:"category-fields-data" }}
+
         </div>
 
 
-        <!-- Sign In Form -->
+        <!-- ===================================
+             SIGN IN FORM
+        =================================== -->
+
         <div class="form-container sign-in-container">
 
-            <form method="POST" action="{% url "login_view" %}">
+            <form method="POST"
+                  action="{% url 'login_view' %}">
+
                 {% csrf_token %}
 
                 <h1>Sign In</h1>
 
-                <!-- Google Sign In Placeholder -->
-                <div class="social-container">
-                    
-                <a href="{% provider_login_url 'google' %}">
-                    <i class="fa-brands fa-google"></i>
-                    <br><h6>Continue with Google</h6>
-                </a>
-                </div> 
 
-               
                 
-                <!--<input type="email" name="email"  placeholder="Email" required>
-                <input type="password" name="password"
-                placeholder="Password" required>-->
 
+                <!-- EMAIL -->
 
                 <div class="password-field">
-                    <input type="email" name="email"  placeholder="Email" required>
-                       
+
+                    <input type="email"
+                           name="email"
+                           placeholder="Email"
+                           required>
+
                 </div>
+
+
+                <!-- PASSWORD -->
+
                 <div class="password-field">
-                        <input type="password"  name="password" id="fakePassword" placeholder="Enter Password" required/>
-                        <span><i id="toggler"class="far fa-eye"></i></span>
+
+                    <input type="password"
+                           name="password"
+                           id="signinPassword"
+                           placeholder="Enter Password"
+                           required>
+
+                    <span>
+
+                        <i class="far fa-eye"></i>
+
+                    </span>
+
                 </div>
 
-                <a href="#">Forgot your password?</a>
 
-                <button type="submit">Sign In</button>
+                <a href="#">
+                    Forgot your password?
+                </a>
 
-                <!-- Mobile Switch -->
+
+                <button type="submit">
+                    Sign In
+                </button>
+
+
+                <!-- MOBILE SWITCH -->
+
                 <button type="button"
                         class="mobile-switch"
                         id="mobileSignUp">
+
                     Don't have an account? Sign Up
+
                 </button>
 
             </form>
+
         </div>
 
 
-        <!-- Sliding Overlay -->
+        <!-- ===================================
+             SLIDING OVERLAY
+        =================================== -->
+
         <div class="overlay-container">
 
             <div class="overlay">
+
+
+                <!-- LEFT PANEL -->
 
                 <div class="overlay-panel overlay-left">
 
@@ -212,12 +343,18 @@
                         with your personal info
                     </p>
 
-                    <button type="button" class="ghost" id="signIn">
+                    <button type="button"
+                            class="ghost"
+                            id="signIn">
+
                         Sign In
+
                     </button>
 
                 </div>
 
+
+                <!-- RIGHT PANEL -->
 
                 <div class="overlay-panel overlay-right">
 
@@ -228,20 +365,27 @@
                         your journey with us
                     </p>
 
-                    <button type="button" class="ghost" id="signUp">
+                    <button type="button"
+                            class="ghost"
+                            id="signUp">
+
                         Sign Up
+
                     </button>
 
                 </div>
 
             </div>
+
         </div>
 
     </div>
 
 
-    <!-- JavaScript -->
+    <!-- JAVASCRIPT -->
+
     <script src="{% static 'accounts/js/auth.js' %}"></script>
 
 </body>
+
 </html>

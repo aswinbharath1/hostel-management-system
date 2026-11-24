@@ -55,7 +55,7 @@
 
             <div class="profile-item">
                 <label>Resident Category</label>
-                <p>{{ resident.get_category_display|default:"—" }}</p>
+                <p>{{ resident.category.name|default:"—" }}</p>
             </div>
 
             <div class="profile-item full-width">
@@ -92,34 +92,34 @@
 
     </div>
 
+        <!-- Category Details -->
+        <div class="dashboard-panel profile-panel">
 
-    <!-- Category Details -->
-    <div class="dashboard-panel profile-panel">
-
-        <div class="profile-section-heading">
-            <i class="fa-solid fa-circle-info"></i>
-            <h5>Category Information</h5>
-        </div>
-
-        {% if resident.category_details %}
-
-            <div class="profile-details">
-
-                {% for key, value in resident.category_details.items %}
-                <div class="profile-item">
-                    <label>{{ key|cut:"_"|title }}</label>
-                    <p>{{ value|default:"—" }}</p>
-                </div>
-                {% endfor %}
-
+            <div class="profile-section-heading">
+                <i class="fa-solid fa-circle-info"></i>
+                <h5>Category Information</h5>
             </div>
 
-        {% else %}
-            <p class="text-muted mb-0">No additional category information available.</p>
-        {% endif %}
+            {% if category_fields %}
 
-    </div>
+                <div class="profile-details">
 
+                    {% for field in category_fields %}
+                    <div class="profile-item">
+                        <label>{{ field.label }}</label>
+                        <p>{{ field.value|default:"—" }}</p>
+                    </div>
+                    {% endfor %}
+
+                </div>
+
+            {% else %}
+                <p class="text-muted mb-0">
+                    No additional category information available.
+                </p>
+            {% endif %}
+
+        </div>
 
     <!-- Room Allocation -->
     <div class="dashboard-panel profile-panel">

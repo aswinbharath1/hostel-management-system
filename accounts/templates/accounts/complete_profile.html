@@ -207,13 +207,13 @@
 
             <div class="mb-3">
                 <label class="form-label">Resident Category *</label>
-                <select name="category" id="category"
-                        class="form-select" required>
-                    <option value="">Select Category</option>
-                    {% for value, label in category_choices %}
-                        <option value="{{ value }}"
-                            {% if user.category == value %}selected{% endif %}>
-                            {{ label }}
+                <select name="category" id="category" class="form-select" required>
+                    <option value="">Select Resident Category</option>
+
+                    {% for category in category_choices %}
+                        <option value="{{ category.id }}"
+                            {% if user.category_id == category.id %}selected{% endif %}>
+                            {{ category.name }}
                         </option>
                     {% endfor %}
                 </select>
@@ -231,83 +231,80 @@
     </div>
 </div>
 
+{{ category_fields_data|json_script:"category-fields-data" }}
+{{ user.category_details|json_script:"saved-category-details" }}
+
 <script>
-    const categoryFields = {
-        STUDENT: [
-            ['institution_name', 'Institution Name'],
-            ['course', 'Course'],
-            ['study_year', 'Study Year']
-        ],
-        JOB_SEEKER: [
-            ['qualification', 'Qualification'],
-            ['preferred_job_location', 'Preferred Job Location']
-        ],
-        WORKING_PROFESSIONAL: [
-            ['company_name', 'Company Name'],
-            ['designation', 'Designation'],
-            ['work_location', 'Work Location']
-        ],
-        EXAM_ASPIRANT: [
-            ['exam_name', 'Exam Name'],
-            ['coaching_institute', 'Coaching Institute']
-        ],
-        INTERN: [
-            ['organisation', 'Organisation'],
-            ['training_details', 'Training Details']
-        ],
-        BUSINESS: [
-            ['business_name', 'Business Name'],
-            ['business_type', 'Business Type']
-        ],
-        MEDICAL: [
-            ['hospital_name', 'Hospital Name'],
-            ['visit_purpose', 'Visit Purpose']
-        ],
-        TEMPORARY: [
-            ['stay_purpose', 'Stay Purpose'],
-            ['stay_duration', 'Stay Duration']
-        ]
-    };
+    const categoryFieldsData = JSON.parse(
+        document.getElementById('category-fields-data').textContent
+    );
+
+    const savedCategoryDetails = JSON.parse(
+        document.getElementById('saved-category-details').textContent
+    );
 
     const categorySelect = document.getElementById('category');
     const categoryContainer = document.getElementById('category-fields');
 
     function showCategoryFields() {
         const selectedCategory = categorySelect.value;
+
         categoryContainer.innerHTML = '';
 
-        const fields = categoryFields[selectedCategory] || [];
+        const fields = categoryFieldsData[selectedCategory] || [];
 
-        if (fields.length === 0) return;
+        if (fields.length === 0) {
+            return;
+        }
 
-        const heading = document.createElement('h6');
+        const heading = document.createElement('h5');
         heading.className = 'section-title';
-        heading.textContent = 'Additional Details';
+        heading.textContent = 'Additional Information';
+
         categoryContainer.appendChild(heading);
 
-        fields.forEach(([name, label]) => {
+        fields.forEach(field => {
             const wrapper = document.createElement('div');
             wrapper.className = 'mb-3';
 
-            const fieldLabel = document.createElement('label');
-            fieldLabel.className = 'form-label';
-            fieldLabel.textContent = label + ' *';
+            const label = document.createElement('label');
+            label.className = 'form-label';
+            label.textContent = field.label + ' (Optional)';
 
-            const input = document.createElement('input');
-            input.type = 'text';
-            input.name = name;
+            let input;
+
+            if (field.type === 'textarea') {
+                input = document.createElement('textarea');
+                input.rows = 3;
+            } else {
+                input = document.createElement('input');
+
+                if (field.type === 'number') {
+                    input.type = 'number';
+                } else if (field.type === 'date') {
+                    input.type = 'date';
+                } else {
+                    input.type = 'text';
+                }
+            }
+
+            input.name = field.key;
             input.className = 'form-control';
-            input.required = true;
+            input.required = false;
 
-            wrapper.appendChild(fieldLabel);
+            // Restore previously saved value
+            input.value = savedCategoryDetails[field.key] || '';
+
+            wrapper.appendChild(label);
             wrapper.appendChild(input);
+
             categoryContainer.appendChild(wrapper);
         });
     }
 
     categorySelect.addEventListener('change', showCategoryFields);
 
-    // Display fields for an already selected category
+    // Display fields for the initially selected category
     showCategoryFields();
 </script>
 

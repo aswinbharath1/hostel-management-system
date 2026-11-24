@@ -9,66 +9,77 @@ from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_POST
 import re
 from datetime import date
+from .models import ResidentCategory, ResidentCategoryField
 
+
+# Create your views here.
 
 User = get_user_model()
-# Create your views here.
+
+
+def get_auth_context(initial_panel='', form_data=None):
+    categories = list(
+        ResidentCategory.objects
+        .filter(is_active=True)
+        .prefetch_related('custom_fields')
+    )
+
+    category_fields_data = {}
+
+    for category in categories:
+        category_fields_data[str(category.id)] = [
+            {
+                'key': field.field_key,
+                'label': field.label,
+                'type': field.field_type.lower(),
+            }
+            for field in category.custom_fields.all()
+            if field.is_active
+        ]
+
+    return {
+        'form_data': form_data or {},
+        'initial_panel': initial_panel,
+        'categories': categories,
+        'category_fields_data': category_fields_data,
+    }
+
+
+
 @never_cache
 def auth_view(request):
     initial_panel = request.session.pop('auth_panel', '')
 
-    return render(request, 'accounts/auth.html', {
-        'form_data': {},
-        'initial_panel': initial_panel
-    })
+    return render(
+        request,
+        'accounts/auth.html',
+        get_auth_context(initial_panel)
+    )
+
 
 def register_view(request):
-    if request.method =='POST':
-        full_name = request.POST.get('full_name','').strip()
-        email = request.POST.get('email','').lower()
-        phone_number = request.POST.get('phone_number','').strip()
-        date_of_birth = request.POST.get('date_of_birth')
-        gender = request.POST.get('gender','')
+    if request.method == 'POST':
+        full_name = request.POST.get('full_name', '').strip()
+        email = request.POST.get('email', '').strip().lower()
+        phone_number = request.POST.get('phone_number', '').strip()
+        date_of_birth = request.POST.get('date_of_birth') or None
+        gender = request.POST.get('gender', '')
+        category_id = request.POST.get('category', '')
 
-        category = request.POST.get('category','')
+        password1 = request.POST.get('password1', '').strip()
+        password2 = request.POST.get('password2', '').strip()
 
-        password1= request.POST.get('password1','').strip()
-        password2= request.POST.get('password2','').strip()
+        if not all([
+            full_name, email, phone_number,
+            category_id, password1, password2
+        ]):
+            messages.error(
+                request,
+                'Please fill in all required fields.'
+            )
 
-
-        category_fields = {
-            'STUDENT': [
-                'institution_name', 'course', 'study_year'
-            ],
-            'JOB_SEEKER': [
-                'qualification', 'preferred_job_location'
-            ],
-            'WORKING_PROFESSIONAL': [
-                'company_name', 'designation', 'work_location'
-            ],
-            'EXAM_ASPIRANT': [
-                'exam_name', 'coaching_institute'
-            ],
-            'INTERN': [
-                'organisation', 'training_details'
-            ],
-            'BUSINESS': [
-                'business_name', 'business_type'
-            ],
-            'MEDICAL': [
-                'hospital_name', 'visit_purpose'
-            ],
-            'TEMPORARY': [
-                'stay_purpose', 'stay_duration'
-            ],
-            
-        }
-
-        if not all([full_name, email, phone_number, category, password1, password2]):
-            messages.error(request, 'Please fill in all required fields.')
-
-        elif category not in User.Category.values:
-            messages.error(request, 'Invalid resident category.')
+        elif gender not in User.Gender.values:
+            messages.error(request, 'Please select a valid gender.')
 
         elif User.objects.filter(email=email).exists():
             messages.error(request, 'This email is already registered.')
@@ -77,85 +88,112 @@ def register_view(request):
             messages.error(request, 'Passwords do not match.')
 
         else:
-            try:
-                # Validate password using Django's password validators
-                validate_password(password1)
+            category = ResidentCategory.objects.filter(
+                id=category_id,
+                is_active=True
+            ).first()
 
-                # Collect category-specific information
-                category_details = {}
-
-                for field in category_fields.get(category, []):
-                    value = request.POST.get(field, '').strip()
-
-                    if value:
-                        category_details[field] = value
-                # Create resident account
-                user = User.objects.create_user(
-                    username=email,
-                    email=email,
-                    password=password1,
-                    full_name=full_name,
-                    phone_number=phone_number,
-                    date_of_birth=date_of_birth,
-                    gender= gender,
-                    category=category,
-                    category_details=category_details,
-                    profile_completed=True
+            if not category:
+                messages.error(
+                    request,
+                    'Please select a valid active category.'
                 )
+            else:
+                try:
+                    validate_password(password1)
 
-                
-                messages.success(
-                request,
-                'Registration successful! You can now sign in.'
+                    category_details = {}
+
+                    # Get active fields configured by Admin
+                    fields = category.custom_fields.filter(
+                        is_active=True
                     )
 
-                request.session['auth_panel'] = 'signin'
+                    # Save only the values provided by the resident
+                    for field in fields:
+                        value = request.POST.get(
+                            field.field_key, ''
+                        ).strip()
 
-                return redirect('auth')
+                        if value:
+                            category_details[field.field_key] = value
 
-            except ValidationError as error:
-                messages.error(request, ' '.join(error.messages))
-        
-        # Keep submitted data when registration fails
-        return render(request, 'accounts/auth.html', {
-            'form_data': request.POST.dict(),
-            'initial_panel': 'signup'
-        })
+                    user = User.objects.create_user(
+                        username=email,
+                        email=email,
+                        password=password1,
+                        full_name=full_name,
+                        phone_number=phone_number,
+                        date_of_birth=date_of_birth,
+                        gender=gender,
+                        category=category,
+                        category_details=category_details,
+                        profile_completed=False
+                    )
+
+
+                    login(request, user)
+
+                    messages.success(
+                        request,
+                        'Registration successful! Please complete your profile.'
+                    )
+
+                    return redirect('complete_profile')
+
+                except ValidationError as error:
+                    messages.error(
+                        request,
+                        ' '.join(error.messages)
+                    )
+
+        return render(
+            request,
+            'accounts/auth.html',
+            get_auth_context('signup', request.POST.dict())
+        )
+
     return redirect('auth')
 
-
-
-#login Users
+# Login Users
 def login_view(request):
-    if request.method=='POST':
-        email= request.POST.get('email','').strip().lower()
-        password= request.POST.get('password','')
-        user = User.objects.filter(email  = email ).first()
+    if request.method == 'POST':
+        email = request.POST.get('email', '').strip().lower()
+        password = request.POST.get('password', '')
+
+        user = User.objects.filter(email=email).first()
 
         if user:
             authenticated_user = authenticate(
                 request,
-                username = user.username,
-                password = password
+                username=user.username,
+                password=password
             )
+
             if authenticated_user is not None:
                 login(request, authenticated_user)
 
                 if authenticated_user.role == User.Role.ADMIN:
                     return redirect('/admin/')
-            
-                elif authenticated_user.role ==User.Role.WARDEN:
+
+                elif authenticated_user.role == User.Role.WARDEN:
                     return redirect('warden_dashboard')
+
                 else:
+                    if not authenticated_user.profile_completed:
+                        return redirect('complete_profile')
+
                     return redirect('resident_dashboard')
-        messages.error(request, 'Invalid UserName or Password !! Check Your Credentials Again')
-    
-    return render(request, 'accounts/auth.html',{
-        'form_data':{},
-        'initial_panel':'signin'
+
+        messages.error(
+            request,
+            'Invalid UserName or Password !! Check Your Credentials Again'
+        )
+
+    return render(request, 'accounts/auth.html', {
+        'form_data': {},
+        'initial_panel': 'signin'
     })
-
-
 
 #Logout Users
 
@@ -176,16 +214,20 @@ def complete_profile(request):
     if user.profile_completed:
         return redirect('resident_dashboard')
 
-    category_fields = {
-        'STUDENT': ['institution_name', 'course', 'study_year'],
-        'JOB_SEEKER': ['qualification', 'preferred_job_location'],
-        'WORKING_PROFESSIONAL': ['company_name', 'designation', 'work_location'],
-        'EXAM_ASPIRANT': ['exam_name', 'coaching_institute'],
-        'INTERN': ['organisation', 'training_details'],
-        'BUSINESS': ['business_name', 'business_type'],
-        'MEDICAL': ['hospital_name', 'visit_purpose'],
-        'TEMPORARY': ['stay_purpose', 'stay_duration'],
-    }  
+    categories = ResidentCategory.objects.filter(is_active=True)
+
+    # Prepare dynamic fields for each category.
+    category_fields_data = {}
+
+    for category in categories:
+        category_fields_data[str(category.id)] = [
+            {
+                'key': field.field_key,
+                'label': field.label,
+                'type': field.field_type.lower(),
+            }
+            for field in category.custom_fields.filter(is_active=True)
+        ]
 
     if request.method == 'POST':
         full_name = request.POST.get('full_name', '').strip()
@@ -193,16 +235,23 @@ def complete_profile(request):
         date_of_birth = request.POST.get('date_of_birth', '')
         gender = request.POST.get('gender', '')
         address = request.POST.get('address', '').strip()
-        emergency_contact_name = request.POST.get('emergency_contact_name', '').strip()
-        emergency_contact_number = request.POST.get('emergency_contact_number', '').strip()
-        category = request.POST.get('category', '')
+
+        emergency_contact_name = request.POST.get(
+            'emergency_contact_name', ''
+        ).strip()
+
+        emergency_contact_number = request.POST.get(
+            'emergency_contact_number', ''
+        ).strip()
+
+        category_id = request.POST.get('category', '')
 
         errors = []
 
         if not all([
             full_name, phone_number, date_of_birth, gender,
             address, emergency_contact_name,
-            emergency_contact_number, category
+            emergency_contact_number, category_id
         ]):
             errors.append('Please fill in all required fields.')
 
@@ -210,25 +259,27 @@ def complete_profile(request):
 
         if date_of_birth and not dob:
             errors.append('Please enter a valid date of birth.')
+        elif dob and dob > date.today():
+            errors.append('Date of birth cannot be in the future.')
 
         if gender not in User.Gender.values:
             errors.append('Please select a valid gender.')
 
-        if category not in User.Category.values:
+        category = categories.filter(id=category_id).first()
+
+        if not category:
             errors.append('Please select a valid resident category.')
 
-        category_details = {}
-
-        if category in category_fields:
-            for field in category_fields[category]:
-                value = request.POST.get(field, '').strip()
-
-                if not value:
-                    errors.append(f'{field.replace("_", " ").title()} is required.')
-
-                category_details[field] = value
-
         if not errors:
+            category_details = {}
+
+            # Read active fields configured by Admin.
+            for field in category.custom_fields.filter(is_active=True):
+                value = request.POST.get(field.field_key, '').strip()
+
+                if value:
+                    category_details[field.field_key] = value
+
             user.full_name = full_name
             user.phone_number = phone_number
             user.date_of_birth = dob
@@ -242,7 +293,10 @@ def complete_profile(request):
 
             user.save()
 
-            messages.success(request, 'Your profile has been completed successfully!')
+            messages.success(
+                request,
+                'Your profile has been completed successfully!'
+            )
             return redirect('resident_dashboard')
 
         for error in errors:
@@ -250,25 +304,37 @@ def complete_profile(request):
 
     return render(request, 'accounts/complete_profile.html', {
         'user': user,
-        'category_choices': User.Category.choices,
+        'category_choices': categories,
         'gender_choices': User.Gender.choices,
+        'category_fields_data': category_fields_data,
     })
+
 
 @login_required
 def edit_profile(request):
     user = request.user
-    User = get_user_model()
 
-    category_fields = {
-        'STUDENT': ['institution_name', 'course', 'study_year'],
-        'JOB_SEEKER': ['qualification', 'preferred_job_location'],
-        'WORKING_PROFESSIONAL': ['company_name', 'designation', 'work_location'],
-        'EXAM_ASPIRANT': ['exam_name', 'coaching_institute'],
-        'INTERN': ['organisation', 'training_details'],
-        'BUSINESS': ['business_name', 'business_type'],
-        'MEDICAL': ['hospital_name', 'visit_purpose'],
-        'TEMPORARY': ['stay_purpose', 'stay_duration'],
-    }
+    categories = list(
+        ResidentCategory.objects.filter(is_active=True)
+    )
+
+    # Keep the resident's existing category available if Admin deactivated it.
+    if user.category and not user.category.is_active:
+        if user.category not in categories:
+            categories.append(user.category)
+
+    # Prepare category-specific fields from the database.
+    category_fields_data = {}
+
+    for category in categories:
+        category_fields_data[str(category.id)] = [
+            {
+                'key': field.field_key,
+                'label': field.label,
+                'type': field.field_type.lower(),
+            }
+            for field in category.custom_fields.filter(is_active=True)
+        ]
 
     if request.method == 'POST':
         full_name = request.POST.get('full_name', '').strip()
@@ -276,25 +342,30 @@ def edit_profile(request):
         date_of_birth = request.POST.get('date_of_birth', '')
         gender = request.POST.get('gender', '')
         address = request.POST.get('address', '').strip()
-        emergency_contact_name = request.POST.get('emergency_contact_name', '').strip()
-        emergency_contact_number = request.POST.get('emergency_contact_number', '').strip()
-        category = request.POST.get('category', '')
+
+        emergency_contact_name = request.POST.get(
+            'emergency_contact_name', ''
+        ).strip()
+
+        emergency_contact_number = request.POST.get(
+            'emergency_contact_number', ''
+        ).strip()
+
+        category_id = request.POST.get('category', '')
 
         errors = []
 
-        # Full name validation
         if not full_name:
             errors.append('Full name is required.')
 
-        # Phone number validation
         if not re.fullmatch(r'[0-9]{10}', phone_number):
             errors.append('Phone number must contain exactly 10 digits.')
 
-        # Emergency contact validation
         if not re.fullmatch(r'[0-9]{10}', emergency_contact_number):
-            errors.append('Emergency contact number must contain exactly 10 digits.')
+            errors.append(
+                'Emergency contact number must contain exactly 10 digits.'
+            )
 
-        # Date of birth validation
         dob = parse_date(date_of_birth)
 
         if not dob:
@@ -302,52 +373,33 @@ def edit_profile(request):
         elif dob > date.today():
             errors.append('Date of birth cannot be in the future.')
 
-        # Gender validation
         if gender not in User.Gender.values:
             errors.append('Please select a valid gender.')
 
-        # Category validation
-        if category not in User.Category.values:
-            errors.append('Please select a valid resident category.')
-
-        # Address validation
         if not address:
             errors.append('Address is required.')
 
+        if not emergency_contact_name:
+            errors.append('Emergency contact name is required.')
 
-        
-        if not all([
-            full_name, phone_number, date_of_birth, gender,
-            address, emergency_contact_name,
-            emergency_contact_number, category
-        ]):
-            errors.append('Please fill in all required fields.')
+        category = next(
+            (item for item in categories if str(item.id) == category_id),
+            None
+        )
 
-        dob = parse_date(date_of_birth)
-
-        if date_of_birth and not dob:
-            errors.append('Please enter a valid date of birth.')
-
-        if gender not in User.Gender.values:
-            errors.append('Please select a valid gender.')
-
-        if category not in User.Category.values:
+        if not category:
             errors.append('Please select a valid resident category.')
 
-        category_details = {}
-
-        if category in category_fields:
-            for field in category_fields[category]:
-                value = request.POST.get(field, '').strip()
-
-                if not value:
-                    errors.append(
-                        f'{field.replace("_", " ").title()} is required.'
-                    )
-
-                category_details[field] = value
-
         if not errors:
+            category_details = {}
+
+            # Only accept fields configured for the selected category.
+            for field in category.custom_fields.filter(is_active=True):
+                value = request.POST.get(field.field_key, '').strip()
+
+                if value:
+                    category_details[field.field_key] = value
+
             user.full_name = full_name
             user.phone_number = phone_number
             user.date_of_birth = dob
@@ -360,15 +412,19 @@ def edit_profile(request):
 
             user.save()
 
-            messages.success(request, 'Your profile has been updated successfully!')
+            messages.success(
+                request,
+                'Your profile has been updated successfully!'
+            )
             return redirect('resident_profile')
 
         for error in errors:
             messages.error(request, error)
 
-    return render(request, 'accounts/complete_profile.html', {
+    return render(request, 'residents/profile.html', {
         'user': user,
-        'category_choices': User.Category.choices,
+        'categories': categories,
         'gender_choices': User.Gender.choices,
+        'category_fields_data': category_fields_data,
         'is_edit': True,
     })

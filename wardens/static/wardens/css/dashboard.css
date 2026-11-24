@@ -1210,3 +1210,323 @@ button {
 .resident-search-btn:hover {
     background: #1d4ed8;
 }
+
+
+
+
+.allocation-form-panel {
+    max-width: 750px;
+    padding: 28px;
+    margin-top: 20px;
+}
+
+.allocation-form-panel .form-label {
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 8px;
+}
+
+.allocation-form-panel .form-select {
+    min-height: 46px;
+    border-radius: 8px;
+    border: 1px solid #d1d5db;
+}
+
+.allocation-form-panel .form-select:focus {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+
+
+.room-detail-panel {
+    padding: 25px;
+}
+
+.room-detail-panel h5 {
+    font-weight: 600;
+    color: #252b50;
+}
+
+.room-detail-panel small {
+    color: #777;
+}
+
+.room-detail-panel h6 {
+    margin-top: 7px;
+    font-weight: 600;
+    color: #343a40;
+}
+
+.room-detail-panel .badge {
+    padding: 7px 12px;
+    font-weight: 500;
+    border-radius: 6px;
+}
+
+
+
+/* =========================================
+   FIXED WARDEN DASHBOARD LAYOUT
+========================================= */
+
+.dashboard-wrapper {
+    min-height: 100vh;
+    height: 100vh;
+    overflow: hidden;
+}
+
+/* Fixed sidebar */
+.sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 250px;
+    height: 100vh;
+    min-height: 100vh;
+    z-index: 1050;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+/* Main content scrolls independently */
+.main-content {
+    margin-left: 250px;
+    width: calc(100% - 250px);
+    height: 100vh;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    transition: margin-left 0.3s ease, width 0.3s ease;
+}
+
+/* Keep navbar visible while content scrolls */
+.top-navbar {
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    flex-shrink: 0;
+}
+
+/* Sidebar collapsed */
+.sidebar.collapsed {
+    width: 75px;
+}
+
+.sidebar.collapsed + .main-content {
+    margin-left: 75px;
+    width: calc(100% - 75px);
+}
+
+/* Compact page spacing */
+.page-content {
+    padding: 24px;
+}
+
+/* Mobile layout */
+@media (max-width: 768px) {
+    .sidebar {
+        left: -250px;
+        width: 250px;
+    }
+
+    .sidebar.mobile-open {
+        left: 0;
+    }
+
+    .sidebar.collapsed {
+        width: 250px;
+    }
+
+    .main-content,
+    .sidebar.collapsed + .main-content {
+        margin-left: 0;
+        width: 100%;
+    }
+
+    .page-content {
+        padding: 18px 15px;
+    }
+}
+
+/* Compact Room Details */
+
+.room-detail-panel {
+    height: auto;
+    padding: 18px 22px;
+    margin-bottom: 16px;
+}
+
+.room-detail-panel h5 {
+    margin-bottom: 12px;
+    font-size: 16px;
+}
+
+.room-detail-panel .row {
+    row-gap: 12px !important;
+}
+
+.room-detail-panel hr {
+    margin: 14px 0;
+}
+
+.room-detail-panel .table-responsive {
+    margin-top: 12px !important;
+}
+
+.room-detail-panel .resident-table th,
+.room-detail-panel .resident-table td {
+    padding: 12px 16px;
+}
+
+
+.room-summary-card {
+    height: auto;
+    padding: 15px 20px;
+}
+
+.room-summary-card small {
+    color: #777;
+}
+
+.room-summary-card h3 {
+    margin: 8px 0 0;
+    font-size: 25px;
+    font-weight: 600;
+    color: #272757;
+}
+
+/* More compact room information */
+.room-detail-panel {
+    padding: 16px 22px;
+}
+
+.room-detail-panel .row {
+    row-gap: 8px !important;
+}
+
+.room-detail-panel hr {
+    margin: 10px 0;
+}
+
+.room-detail-panel h6 {
+    margin-top: 4px;
+    margin-bottom: 4px;
+}
+
+.room-detail-panel h5 {
+    margin-bottom: 8px;
+}
+
+.room-summary-card {
+    padding: 12px 18px;
+}
+
+
+/* =================================
+   ALLOCATE BED PAGE
+================================= */
+
+.allocation-header {
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 15px;
+}
+
+.allocation-summary {
+    max-width: 850px;
+    margin-bottom: 18px;
+}
+
+.allocation-stat-card {
+    height: auto;
+    min-height: 95px;
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.allocation-stat-icon {
+    width: 46px;
+    height: 46px;
+    border-radius: 10px;
+    background: #eeeef8;
+    color: #505081;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+}
+
+.allocation-stat-card small {
+    color: #777;
+    font-size: 13px;
+}
+
+.allocation-stat-card h3 {
+    margin: 3px 0 0;
+    font-size: 25px;
+    font-weight: 600;
+    color: #272757;
+}
+
+.allocation-form-panel {
+    width: 100%;
+    max-width: 850px;
+    height: auto;
+    padding: 22px 24px;
+}
+
+.allocation-form-heading {
+    margin-bottom: 20px;
+}
+
+.allocation-form-heading h5 {
+    font-size: 17px;
+    font-weight: 600;
+    color: #272757;
+    margin-bottom: 5px;
+}
+
+.allocation-form-heading p {
+    color: #777;
+    font-size: 13px;
+    margin-bottom: 0;
+}
+
+.allocation-form-panel .form-label {
+    font-weight: 600;
+    font-size: 14px;
+    margin-bottom: 7px;
+}
+
+.allocation-form-panel .form-select {
+    min-height: 43px;
+}
+
+.allocation-form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+@media (max-width: 576px) {
+    .allocation-header {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .allocation-form-panel {
+        padding: 18px;
+    }
+}
+
+
+
+
+
+

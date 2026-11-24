@@ -49,22 +49,29 @@
                     <span>Residents</span>
                 </a>
             </li>
+
             <li>
+                <a href="{% url 'warden_accommodation_requests' %}"
+                class="{% if request.resolver_match.url_name == 'warden_accommodation_requests' %}active{% endif %}">
+                    <i class="fa-solid fa-clipboard-list"></i>
+                    <span>Accommodation Requests</span>
+                </a>
+            </li>
+           <li>
                 <a href="{% url 'warden_allocation_list' %}"
-                class="{% if request.resolver_match.url_name == 'warden_allocation_list' %}active{% endif %}">
+                class="{% if request.resolver_match.url_name == 'warden_allocation_list' or request.resolver_match.url_name == 'warden_allocate_bed' %}active{% endif %}">
                     <i class="fa-solid fa-bed"></i>
                     <span>Room Allocation</span>
                 </a>
             </li>
 
             <li>
-                <a href="#">
-                    <i class="fa-solid fa-building"></i>
+                <a href="{% url 'warden_room_list' %}"
+                class="{% if request.resolver_match.url_name == 'warden_room_list' or request.resolver_match.url_name == 'warden_room_detail' %}active{% endif %}">
+                    <i class="fa-solid fa-door-open"></i>
                     <span>Rooms</span>
                 </a>
             </li>
-
-            <li>
                 <a href="#">
                     <i class="fa-solid fa-wallet"></i>
                     <span>Payments</span>
@@ -114,6 +121,19 @@
             </div>
 
         </nav>
+
+                {% if messages %}
+                    <div class="container mt-3">
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }} alert-dismissible fade show"
+                                role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close"
+                                        data-bs-dismiss="alert"></button>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
 
         <!-- Page Content -->
         <main class="page-content">

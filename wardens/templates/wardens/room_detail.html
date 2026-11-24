@@ -1,0 +1,168 @@
+
+{% extends 'wardens/base.html' %}
+
+{% block title %}Room {{ room.room_number }} Details{% endblock %}
+
+{% block content %}
+
+<div class="dashboard-header">
+    <div>
+        <h2>Room {{ room.room_number }}</h2>
+        <p>{{ room.floor.building.name }} - Floor {{ room.floor.floor_number }}</p>
+    </div>
+
+    <a href="{% url 'warden_room_list' %}" class="btn btn-light">
+        <i class="fa-solid fa-arrow-left"></i> Back to Rooms
+    </a>
+</div>
+
+<!-- Room Information -->
+<div class="dashboard-panel room-detail-panel">
+
+    <h5>Room Information</h5>
+
+    <div class="row g-3 mt-1">
+
+        <div class="col-md-4">
+            <small>Building</small>
+            <h6>{{ room.floor.building.name }}</h6>
+        </div>
+
+        <div class="col-md-4">
+            <small>Floor</small>
+            <h6>{{ room.floor.floor_number }}</h6>
+        </div>
+
+        <div class="col-md-4">
+            <small>Room Number</small>
+            <h6>{{ room.room_number }}</h6>
+        </div>
+
+        <div class="col-md-4">
+            <small>Room Type</small>
+            <h6>{{ room.get_room_type_display }}</h6>
+        </div>
+
+        <div class="col-md-4">
+            <small>Capacity</small>
+            <h6>{{ room.capacity }} Beds</h6>
+        </div>
+
+        <div class="col-md-4">
+            <small>Total Beds</small>
+            <h6>{{ beds|length }}</h6>
+        </div>
+
+    </div>
+
+    <hr>
+
+    <h6>Facilities</h6>
+
+    <div class="d-flex flex-wrap gap-2 mt-2">
+        {% for facility in room.facilities.all %}
+            <span class="badge bg-light text-dark border">
+                {{ facility.name }}
+            </span>
+        {% empty %}
+            <small class="text-muted">No facilities added.</small>
+        {% endfor %}
+    </div>
+
+</div>
+
+<div class="row g-3 mt-1">
+
+    <div class="col-md-4">
+        <div class="dashboard-panel room-summary-card">
+            <small>Total Beds</small>
+            <h3>{{ total_beds }}</h3>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="dashboard-panel room-summary-card">
+            <small>Occupied Beds</small>
+            <h3>{{ occupied_beds }}</h3>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="dashboard-panel room-summary-card">
+            <small>Available Beds</small>
+            <h3>{{ available_beds }}</h3>
+        </div>
+    </div>
+
+</div>
+
+
+<!-- Bed Information -->
+<div class="dashboard-panel room-detail-panel mt-4">
+
+    <h5>Bed Details</h5>
+
+    <div class="table-responsive mt-3">
+
+        <table class="resident-table">
+            <thead>
+                <tr>
+                    <th>Bed Number</th>
+                    <th>Monthly Rent</th>
+                    <th>Status</th>
+                    <th>Resident</th>
+                    <th>Contact</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+                {% for bed in beds %}
+                <tr>
+
+                    <td><strong>{{ bed.bed_number }}</strong></td>
+
+                    <td>₹{{ bed.monthly_rent }}</td>
+
+                    {% with allocation=bed.active_allocations|first %}
+
+                        {% if allocation %}
+                            <td>
+                                <span class="badge bg-danger">Occupied</span>
+                            </td>
+
+                            <td>
+                                {{ allocation.resident.full_name|default:allocation.resident.username }}
+                            </td>
+
+                            <td>{{ allocation.resident.phone_number|default:"-" }}</td>
+
+                        {% else %}
+                            <td>
+                                <span class="badge bg-success">Available</span>
+                            </td>
+
+                            <td>-</td>
+                            <td>-</td>
+                        {% endif %}
+
+                    {% endwith %}
+
+                </tr>
+
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="text-center py-4">
+                        No beds found in this room.
+                    </td>
+                </tr>
+                {% endfor %}
+
+            </tbody>
+        </table>
+
+    </div>
+
+</div>
+
+{% endblock %}

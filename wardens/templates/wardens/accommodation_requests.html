@@ -1,0 +1,110 @@
+
+{% extends 'wardens/base.html' %}
+
+{% block title %}Accommodation Requests | HostelMate{% endblock %}
+
+{% block content %}
+
+<div class="dashboard-heading">
+    <div>
+        <h2>Accommodation Requests</h2>
+        <p>Review and manage resident accommodation requests</p>
+    </div>
+</div>
+
+<div class="resident-table-panel mt-4">
+
+    <!-- Table Toolbar -->
+    <div class="resident-table-toolbar">
+
+        <div>
+            <h5>Pending Requests</h5>
+            <p>{{ total_pending }} request(s) awaiting review</p>
+        </div>
+
+    </div>
+
+    <!-- Requests Table -->
+    <div class="table-responsive">
+
+        <table class="table resident-table mb-0">
+
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Resident</th>
+                    <th>Preferred Room</th>
+                    <th>Check-in</th>
+                    <th>Check-out</th>
+                    <th>Requested On</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+                {% for item in pending_requests %}
+                <tr>
+
+                    <td>{{ forloop.counter }}</td>
+
+                    <td>
+                        <div class="resident-name">
+                            <div class="resident-avatar">
+                                {{ item.resident.full_name|default:item.resident.username|first|upper }}
+                            </div>
+
+                            <div>
+                                <span class="resident-detail-link">
+                                    {{ item.resident.full_name|default:item.resident.username }}
+                                </span>
+                                <small>{{ item.resident.email }}</small>
+                            </div>
+                        </div>
+                    </td>
+
+                    <td>
+                        <span class="resident-category">
+                            {{ item.get_preferred_room_type_display }}
+                        </span>
+                    </td>
+
+                    <td>{{ item.requested_check_in|date:"d M Y" }}</td>
+
+                    <td>{{ item.expected_check_out|date:"d M Y" }}</td>
+
+                    <td>{{ item.created_at|date:"d M Y" }}</td>
+
+                    <td>
+                        <span class="badge bg-warning text-dark">
+                            Pending
+                        </span>
+                    </td>
+                    <td>
+                        <a href="{% url 'warden_accommodation_request_detail' item.id %}"
+                        class="btn btn-sm btn-primary">
+                            Review
+                        </a>
+                    </td>
+
+                </tr>
+
+                {% empty %}
+                <tr>
+                    <td colspan="8" class="text-center py-5">
+                        <i class="fa-solid fa-clipboard-check fa-2x text-muted mb-3"></i>
+                        <p class="mb-0">No pending accommodation requests.</p>
+                    </td>
+                </tr>
+                {% endfor %}
+                
+            </tbody>
+
+        </table>
+
+    </div>
+
+</div>
+
+{% endblock %}

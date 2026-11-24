@@ -52,6 +52,13 @@
                 <span>My Profile</span>
                 </a>
             </li>
+            <li>
+                <a href="{% url 'resident_accommodation_request' %}"
+                class="{% if request.resolver_match.url_name == 'resident_accommodation_request' %}active{% endif %}">
+                    <i class="fa-solid fa-house-circle-check"></i>
+                    <span>Accommodation Request</span>
+                </a>
+            </li>
 
             <li>
                 <a href="#">

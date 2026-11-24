@@ -12,7 +12,9 @@ const mobileSignUp = document.getElementById('mobileSignUp');
 const mobileSignIn = document.getElementById('mobileSignIn');
 
 
-// Change authentication panel
+// ===================================
+// AUTHENTICATION PANEL SWITCHING
+// ===================================
 
 function showSignUp() {
     container.classList.add('right-panel-active');
@@ -27,136 +29,25 @@ function showSignIn() {
 
 // Desktop buttons
 
-signUpButton.addEventListener('click', showSignUp);
-signInButton.addEventListener('click', showSignIn);
+if (signUpButton) {
+    signUpButton.addEventListener('click', showSignUp);
+}
+
+if (signInButton) {
+    signInButton.addEventListener('click', showSignIn);
+}
 
 
 // Mobile buttons
 
-mobileSignUp.addEventListener('click', showSignUp);
-mobileSignIn.addEventListener('click', showSignIn);
+if (mobileSignUp) {
+    mobileSignUp.addEventListener('click', showSignUp);
+}
 
+if (mobileSignIn) {
+    mobileSignIn.addEventListener('click', showSignIn);
+}
 
-
-// ===================================
-// CATEGORY-SPECIFIC REGISTRATION FIELDS
-// ===================================
-
-const categorySelect = document.getElementById('category');
-const categoryFields = document.getElementById('category-fields');
-
-
-const categoryFormFields = {
-
-    STUDENT: `
-        <input type="text"
-               name="institution_name"
-               placeholder="Institution Name"
-               required>
-
-        <input type="text"
-               name="course"
-               placeholder="Course"
-               required>
-
-        <input type="text"
-               name="study_year"
-               placeholder="Year of Study"
-               required>
-    `,
-
-    JOB_SEEKER: `
-        <input type="text"
-               name="qualification"
-               placeholder="Highest Qualification"
-               required>
-
-        <input type="text"
-               name="preferred_job_location"
-               placeholder="Preferred Job Location"
-               required>
-    `,
-
-    WORKING_PROFESSIONAL: `
-        <input type="text"
-               name="company_name"
-               placeholder="Company Name"
-               required>
-
-        <input type="text"
-               name="designation"
-               placeholder="Designation"
-               required>
-
-        <input type="text"
-               name="work_location"
-               placeholder="Work Location"
-               required>
-    `,
-
-    EXAM_ASPIRANT: `
-        <input type="text"
-               name="exam_name"
-               placeholder="Exam Name"
-               required>
-
-        <input type="text"
-               name="coaching_institute"
-               placeholder="Coaching Institute">
-    `,
-
-    INTERN: `
-        <input type="text"
-               name="organisation"
-               placeholder="Organisation Name"
-               required>
-
-        <input type="text"
-               name="training_details"
-               placeholder="Training / Course Details"
-               required>
-    `,
-
-    BUSINESS: `
-        <input type="text"
-               name="business_name"
-               placeholder="Business Name"
-               required>
-
-        <input type="text"
-               name="business_type"
-               placeholder="Business Type"
-               required>
-    `,
-
-    MEDICAL: `
-        <input type="text"
-               name="hospital_name"
-               placeholder="Hospital Name"
-               required>
-
-        <input type="text"
-               name="visit_purpose"
-               placeholder="Purpose of Visit"
-               required>
-    `,
-
-    TEMPORARY: `
-        <input type="text"
-               name="stay_purpose"
-               placeholder="Purpose of Stay"
-               required>
-
-        <input type="number"
-               name="stay_duration"
-               placeholder="Expected Duration (Days)"
-               min="1"
-               required>
-    `
-};
-
-
-// Display the appropriate fields
 
 // ===================================
 // RESTORE FORM DATA
@@ -169,80 +60,223 @@ const formData = formDataElement
     : {};
 
 
+// ===================================
+// DYNAMIC CATEGORY FIELDS
+// ===================================
+
+const categorySelect = document.getElementById('category');
+
+const categoryContainer = document.getElementById(
+    'category-fields'
+);
+
+const categoryFieldsElement = document.getElementById(
+    'category-fields-data'
+);
+
+const categoryFieldsData = categoryFieldsElement
+    ? JSON.parse(categoryFieldsElement.textContent)
+    : {};
+
 
 function showCategoryFields() {
 
+    if (!categorySelect || !categoryContainer) {
+        return;
+    }
+
     const selectedCategory = categorySelect.value;
 
-    // Generate the appropriate input fields
-    categoryFields.innerHTML =
-        categoryFormFields[selectedCategory] || '';
+    categoryContainer.innerHTML = '';
 
-    // Restore previously entered values
-    categoryFields.querySelectorAll('input').forEach(input => {
+    const fields = categoryFieldsData[selectedCategory] || [];
 
-        if (formData[input.name] !== undefined) {
-            input.value = formData[input.name];
+    if (fields.length === 0) {
+        return;
+    }
+
+    // Section heading
+
+    const heading = document.createElement('h6');
+
+    heading.textContent = 'Additional Details (Optional)';
+
+    categoryContainer.appendChild(heading);
+
+
+    // Generate configured fields
+
+    fields.forEach(field => {
+
+        const wrapper = document.createElement('div');
+
+        wrapper.className = 'category-field';
+
+
+        const label = document.createElement('label');
+
+        label.textContent = field.label;
+
+        label.htmlFor = `category_${field.key}`;
+
+
+        let input;
+
+        if (field.type === 'textarea') {
+
+            input = document.createElement('textarea');
+
+            input.rows = 3;
+
+        } else {
+
+            input = document.createElement('input');
+
+            input.type = ['text', 'number', 'date'].includes(field.type)
+                ? field.type
+                : 'text';
         }
 
+
+        input.name = field.key;
+
+        input.id = `category_${field.key}`;
+
+        input.className = 'form-control';
+
+        input.required = false;
+
+
+        // Restore previously submitted values
+
+        if (formData[field.key] !== undefined) {
+
+            input.value = formData[field.key];
+
+        }
+
+
+        wrapper.appendChild(label);
+
+        wrapper.appendChild(input);
+
+        categoryContainer.appendChild(wrapper);
+
     });
+
 }
 
 
-// Register the change listener BEFORE initial rendering
-categorySelect.addEventListener('change', showCategoryFields);
+// Category change listener
+
+if (categorySelect) {
+
+    categorySelect.addEventListener(
+        'change',
+        showCategoryFields
+    );
 
 
-// Restore the previously selected category
-if (formData.category) {
-    categorySelect.value = formData.category;
+    // Restore selected category
+
+    if (formData.category) {
+
+        categorySelect.value = formData.category;
+
+    }
+
+
+    // Display fields on page load
+
+    showCategoryFields();
+
 }
 
 
-// Generate category fields immediately on page load
-showCategoryFields();
+// ===================================
+// RESTORE NORMAL SIGNUP INPUTS
+// ===================================
 
-
-// Restore normal signup fields
 document.querySelectorAll('.sign-up-container input').forEach(input => {
 
     if (
         input.type !== 'password' &&
         formData[input.name] !== undefined
     ) {
+
         input.value = formData[input.name];
+
     }
 
 });
 
 
-// Restore the correct authentication panel
+// Restore gender selection
+
+const genderSelect = document.getElementById('gender');
+
+if (genderSelect && formData.gender) {
+
+    genderSelect.value = formData.gender;
+
+}
+
+
+// ===================================
+// RESTORE AUTHENTICATION PANEL
+// ===================================
+
 const initialPanel = container.dataset.initialPanel;
 
 if (initialPanel === 'signin') {
+
     showSignIn();
 
 } else if (initialPanel === 'signup') {
+
     showSignUp();
 
 } else if (sessionStorage.getItem('authPanel') === 'signup') {
-    container.classList.add('right-panel-active');
+
+    showSignUp();
 
 } else {
+
     showSignIn();
+
 }
 
 
-//PASSWORD HIDE AND SHOW
-var password = document.getElementById('fakePassword');
-var toggler = document.getElementById('toggler');
-showHidePassword = () => {
-if (password.type == 'password') {
-password.setAttribute('type', 'text');
-toggler.classList.add('fa-eye-slash');
-} else {
-toggler.classList.remove('fa-eye-slash');
-password.setAttribute('type', 'password');
-}
-};
-toggler.addEventListener('click', showHidePassword);
+// ===================================
+// PASSWORD SHOW / HIDE
+// ===================================
+
+document.querySelectorAll('.password-field').forEach(wrapper => {
+
+    const password = wrapper.querySelector('input');
+
+    const toggler = wrapper.querySelector('i');
+
+    if (!password || !toggler) {
+        return;
+    }
+
+    toggler.addEventListener('click', () => {
+
+        const isPassword = password.type === 'password';
+
+        password.type = isPassword ? 'text' : 'password';
+
+        toggler.classList.toggle(
+            'fa-eye-slash',
+            isPassword
+        );
+
+        toggler.classList.toggle(
+            'fa-eye',
+            !isPassword
+        );
+
+    });
+
+});

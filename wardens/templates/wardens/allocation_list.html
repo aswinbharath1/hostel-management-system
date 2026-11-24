@@ -27,7 +27,7 @@
             <button type="submit" class="resident-search-btn">Search</button>
         </form>
 
-        <a href="#" class="btn btn-primary">
+       <a href="{% url 'warden_allocate_bed' %}" class="btn btn-primary">
             <i class="fa-solid fa-plus"></i> Allocate Bed
         </a>
     </div>
@@ -44,6 +44,7 @@
                     <th>Bed</th>
                     <th>Allocated On</th>
                     <th>Status</th>
+                    <th>Actions</th>
                 </tr>
             </thead>
 
@@ -72,6 +73,18 @@
 
                     <td>
                         <span class="category-badge">Occupied</span>
+                    </td>
+                    <td>
+                        <form method="POST"
+                            action="{% url 'warden_vacate_bed' allocation.id %}"
+                            onsubmit="return confirm('Are you sure you want to vacate this bed?');">
+                            {% csrf_token %}
+
+                            <button type="submit" class="btn btn-sm btn-danger">
+                                <i class="fa-solid fa-right-from-bracket"></i>
+                                Vacate
+                            </button>
+                        </form>
                     </td>
                 </tr>
 

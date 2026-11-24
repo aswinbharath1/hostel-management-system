@@ -1,0 +1,118 @@
+
+{% extends 'wardens/base.html' %}
+
+{% block title %}Review Accommodation Request | HostelMate{% endblock %}
+
+{% block content %}
+
+<div class="dashboard-heading">
+    <div>
+        <h2>Review Accommodation Request</h2>
+        <p>Review the resident's accommodation details</p>
+    </div>
+
+    <a href="{% url 'warden_accommodation_requests' %}"
+       class="btn btn-outline-secondary">
+        <i class="fa-solid fa-arrow-left me-1"></i>
+        Back to Requests
+    </a>
+</div>
+
+<div class="resident-table-panel mt-4 p-4">
+
+    <h5 class="mb-4">Resident Information</h5>
+
+    <div class="row mb-3">
+        <div class="col-md-6 mb-3">
+            <strong>Resident Name</strong>
+            <p>{{ accommodation_request.resident.full_name|default:accommodation_request.resident.username }}</p>
+        </div>
+
+        <div class="col-md-6 mb-3">
+            <strong>Email</strong>
+            <p>{{ accommodation_request.resident.email }}</p>
+        </div>
+
+        <div class="col-md-6 mb-3">
+            <strong>Phone Number</strong>
+            <p>{{ accommodation_request.resident.phone_number|default:"—" }}</p>
+        </div>
+
+        <div class="col-md-6 mb-3">
+            <strong>Resident Category</strong>
+            <p>{{ accommodation_request.resident.category.name|default:"—" }}</p>
+        </div>
+    </div>
+
+    <hr>
+
+    <h5 class="mb-4">Accommodation Details</h5>
+
+    <div class="row">
+        <div class="col-md-6 mb-3">
+            <strong>Preferred Room Type</strong>
+            <p>{{ accommodation_request.get_preferred_room_type_display }}</p>
+        </div>
+
+        <div class="col-md-6 mb-3">
+            <strong>Request Status</strong>
+            <p>{{ accommodation_request.get_status_display }}</p>
+        </div>
+
+        <div class="col-md-6 mb-3">
+            <strong>Requested Check-in</strong>
+            <p>{{ accommodation_request.requested_check_in|date:"d M Y" }}</p>
+        </div>
+
+        <div class="col-md-6 mb-3">
+            <strong>Expected Check-out</strong>
+            <p>{{ accommodation_request.expected_check_out|date:"d M Y" }}</p>
+        </div>
+
+        <div class="col-12 mb-3">
+            <strong>Additional Requirements</strong>
+            <p>{{ accommodation_request.additional_notes|default:"No additional requirements provided."|linebreaksbr }}</p>
+        </div>
+    </div>
+
+    <hr>
+
+    {% if accommodation_request.status == 'PENDING' %}
+
+    <form method="POST"
+          action="{% url 'warden_review_accommodation_request' accommodation_request.id %}"
+          class="d-flex gap-2">
+
+        {% csrf_token %}
+
+        <button type="submit"
+                name="action"
+                value="approve"
+                class="btn btn-success"
+                onclick="return confirm('Are you sure you want to approve this request?');">
+            <i class="fa-solid fa-check me-1"></i>
+            Approve Request
+        </button>
+
+        <button type="submit"
+                name="action"
+                value="reject"
+                class="btn btn-danger"
+                onclick="return confirm('Are you sure you want to reject this request?');">
+            <i class="fa-solid fa-xmark me-1"></i>
+            Reject Request
+        </button>
+
+    </form>
+
+{% else %}
+
+    <p class="text-muted mb-0">
+        This request has already been reviewed.
+    </p>
+
+{% endif %}
+
+</div>
+
+{% endblock %}

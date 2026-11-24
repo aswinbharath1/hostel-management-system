@@ -56,7 +56,8 @@
 
             <div class="profile-item">
                 <label>Resident Category</label>
-                <p>{{ request.user.get_category_display|default:"Not provided" }}</p>
+                <p>{{ request.user.category.name|default:"Not provided" }}</p>
+                
             </div>
 
             <div class="profile-item full-width">
@@ -190,12 +191,16 @@
                             <label class="form-label">Resident Category *</label>
                             <select name="category" id="editCategory"
                                     class="form-select" required>
-                                {% for value, label in category_choices %}
-                                    <option value="{{ value }}"
-                                        {% if request.user.category == value %}selected{% endif %}>
-                                        {{ label }}
+
+                                <option value="">Select Category</option>
+
+                                {% for category in categories %}
+                                    <option value="{{ category.id }}"
+                                        {% if request.user.category_id == category.id %}selected{% endif %}>
+                                        {{ category.name }}
                                     </option>
                                 {% endfor %}
+
                             </select>
                         </div>
 
@@ -239,7 +244,7 @@
                     <hr class="my-4">
 
                     <h6 class="mb-3">Additional Information</h6>
-                    <div id="editCategoryFields"></div>
+                    <div class="row g-3" id="editCategoryFields"></div>
 
                 </div>
 
@@ -258,81 +263,75 @@
         </div>
     </div>
 </div>
+{{ category_fields_data|json_script:"edit-category-fields-data" }}
+{{ request.user.category_details|json_script:"saved-category-details" }}
 
 <script>
+    const categoryFieldsData = JSON.parse(
+        document.getElementById('edit-category-fields-data').textContent
+    );
 
-const editCategoryFields = {
-    STUDENT: [
-        ['institution_name', 'Institution Name'],
-        ['course', 'Course'],
-        ['study_year', 'Study Year']
-    ],
-    JOB_SEEKER: [
-        ['qualification', 'Qualification'],
-        ['preferred_job_location', 'Preferred Job Location']
-    ],
-    WORKING_PROFESSIONAL: [
-        ['company_name', 'Company Name'],
-        ['designation', 'Designation'],
-        ['work_location', 'Work Location']
-    ],
-    EXAM_ASPIRANT: [
-        ['exam_name', 'Exam Name'],
-        ['coaching_institute', 'Coaching Institute']
-    ],
-    INTERN: [
-        ['organisation', 'Organisation'],
-        ['training_details', 'Training Details']
-    ],
-    BUSINESS: [
-        ['business_name', 'Business Name'],
-        ['business_type', 'Business Type']
-    ],
-    MEDICAL: [
-        ['hospital_name', 'Hospital Name'],
-        ['visit_purpose', 'Visit Purpose']
-    ],
-    TEMPORARY: [
-        ['stay_purpose', 'Stay Purpose'],
-        ['stay_duration', 'Stay Duration']
-    ]
-};
-    const savedCategoryDetails = {{ request.user.category_details|default:"{}"|safe }};
+    const savedCategoryDetails = JSON.parse(
+        document.getElementById('saved-category-details').textContent
+    );
+
     const editCategory = document.getElementById('editCategory');
     const editCategoryContainer = document.getElementById('editCategoryFields');
 
-function showEditCategoryFields() {
-    const selectedCategory = editCategory.value;
-    editCategoryContainer.innerHTML = '';
+    const originalCategoryId = "{{ request.user.category_id|default:'' }}";
 
-    const fields = editCategoryFields[selectedCategory] || [];
+    function showEditCategoryFields() {
+        const selectedCategory = editCategory.value;
 
-    fields.forEach(([name, label]) => {
-        const wrapper = document.createElement('div');
-        wrapper.className = 'mb-3';
+        editCategoryContainer.innerHTML = '';
 
-        const fieldLabel = document.createElement('label');
-        fieldLabel.className = 'form-label';
-        fieldLabel.textContent = label + ' *';
+        const fields = categoryFieldsData[selectedCategory] || [];
 
-        const input = document.createElement('input');
-        input.type = 'text';
-        input.name = name;
-        input.className = 'form-control';
-        input.value = savedCategoryDetails[name] || '';
-        input.required = true;
+        fields.forEach(field => {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'col-md-6 mb-3';
 
-        wrapper.appendChild(fieldLabel);
-        wrapper.appendChild(input);
-        editCategoryContainer.appendChild(wrapper);
-    });
-}
+            const label = document.createElement('label');
+            label.className = 'form-label';
+            label.textContent = field.label;
 
-editCategory.addEventListener('change', showEditCategoryFields);
+            let input;
 
-showEditCategoryFields();
+            if (field.type === 'textarea') {
+                input = document.createElement('textarea');
+                input.rows = 3;
+            } else {
+                input = document.createElement('input');
+
+                if (field.type === 'number') {
+                    input.type = 'number';
+                } else if (field.type === 'date') {
+                    input.type = 'date';
+                } else {
+                    input.type = 'text';
+                }
+            }
+
+            input.name = field.key;
+            input.className = 'form-control';
+
+            // Restore saved values only for the resident's original category.
+            if (selectedCategory === originalCategoryId) {
+                input.value = savedCategoryDetails[field.key] || '';
+            }
+
+            wrapper.appendChild(label);
+            wrapper.appendChild(input);
+
+            editCategoryContainer.appendChild(wrapper);
+        });
+    }
+
+    editCategory.addEventListener('change', showEditCategoryFields);
+
+    // Display fields when the page loads.
+    showEditCategoryFields();
 </script>
-
 
 
 {% endblock %}

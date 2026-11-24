@@ -1,0 +1,122 @@
+
+{% extends 'wardens/base.html' %}
+
+{% block title %}Allocate Bed{% endblock %}
+
+{% block content %}
+
+<div class="dashboard-header allocation-header">
+    <div>
+        <h2>Allocate Bed</h2>
+        <p>Assign an available bed to a resident.</p>
+    </div>
+    <a href="{% url 'warden_allocation_list' %}" class="btn btn-light">
+        <i class="fa-solid fa-arrow-left"></i> Back to Allocations
+    </a>
+</div>
+
+<!-- Summary Cards -->
+<div class="row g-3 allocation-summary">
+
+    <div class="col-md-6">
+        <div class="dashboard-panel allocation-stat-card">
+            <div class="allocation-stat-icon">
+                <i class="fa-solid fa-users"></i>
+            </div>
+            <div>
+                <small>Unallocated Residents</small>
+                <h3>{{ unallocated_residents_count }}</h3>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="dashboard-panel allocation-stat-card">
+            <div class="allocation-stat-icon">
+                <i class="fa-solid fa-bed"></i>
+            </div>
+            <div>
+                <small>Available Beds</small>
+                <h3>{{ available_beds_count }}</h3>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- Allocation Form -->
+<div class="dashboard-panel allocation-form-panel">
+
+    <div class="allocation-form-heading">
+        <h5>Allocation Information</h5>
+        <p>Select a resident and an available bed.</p>
+    </div>
+
+    <form method="POST">
+        {% csrf_token %}
+
+        <div class="mb-3">
+            <label for="resident" class="form-label">Select Resident</label>
+
+            <select name="resident" id="resident" class="form-select" required>
+                <option value="">Choose a resident</option>
+
+                {% for resident in residents %}
+                    <option value="{{ resident.id }}">
+                        {{ resident.full_name|default:resident.username }}
+                        - {{ resident.phone_number|default:"No phone number" }}
+                    </option>
+                {% endfor %}
+            </select>
+
+            {% if not residents %}
+                <small class="text-muted">
+                    No residents available for allocation.
+                </small>
+            {% endif %}
+        </div>
+
+        <div class="mb-3">
+            <label for="bed" class="form-label">Select Available Bed</label>
+
+            <select name="bed" id="bed" class="form-select" required>
+                <option value="">Choose an available bed</option>
+
+                {% for bed in available_beds %}
+                    <option value="{{ bed.id }}">
+                        {{ bed.room.floor.building.name }} -
+                        Floor {{ bed.room.floor.floor_number }} -
+                        Room {{ bed.room.room_number }} -
+                        Bed {{ bed.bed_number }} -
+                        ₹{{ bed.monthly_rent }}/month
+                    </option>
+                {% endfor %}
+            </select>
+
+            {% if not available_beds %}
+                <small class="text-muted">
+                    No available beds at the moment.
+                </small>
+            {% endif %}
+        </div>
+
+        <div class="allocation-form-actions">
+            <a href="{% url 'warden_allocation_list' %}"
+               class="btn btn-light">
+                Cancel
+            </a>
+
+            <button
+                type="submit"
+                class="btn btn-primary"
+                {% if not residents or not available_beds %}disabled{% endif %}
+            >
+                <i class="fa-solid fa-check"></i> Allocate Bed
+            </button>
+        </div>
+
+    </form>
+
+</div>
+
+{% endblock %}
