@@ -103,6 +103,7 @@
                                 <th>Check-out</th>
                                 <th>Requested On</th>
                                 <th>Status</th>
+                                <th>Reservation</th>
                             </tr>
                         </thead>
 
@@ -124,6 +125,32 @@
                                             <span class="badge bg-secondary">{{ item.get_status_display }}</span>
                                         {% endif %}
                                     </td>
+                                    <td>
+                                        {% if item.reservation %}
+
+                                            {% if item.reservation.status == 'CONFIRMED' %}
+                                                <span class="badge bg-success">Confirmed</span>
+
+                                            {% elif item.reservation.status == 'CANCELLED' %}
+                                                <span class="badge bg-danger">Cancelled</span>
+
+                                            {% elif item.reservation.status == 'COMPLETED' %}
+                                                <span class="badge bg-primary">Completed</span>
+
+                                            {% elif item.reservation.status == 'EXPIRED' %}
+                                                <span class="badge bg-secondary">Expired</span>
+
+                                            {% endif %}
+
+                                        {% elif item.status == 'APPROVED' %}
+                                            <span class="badge bg-warning text-dark">
+                                                Reservation not found
+                                            </span>
+
+                                        {% else %}
+                                            <span class="text-muted">—</span>
+                                        {% endif %}
+                                    </td>
                                 </tr>
                             {% endfor %}
                         </tbody>
@@ -139,6 +166,66 @@
 
         </div>
     </div>
+
+        <div class="card shadow-sm mt-4">
+            <div class="card-header">
+                <h5 class="mb-0">Current Bed Allocation</h5>
+            </div>
+
+            <div class="card-body">
+
+                {% if active_allocation %}
+
+                    <div class="row">
+
+                        <div class="col-md-6 mb-3">
+                            <small class="text-muted">Building</small>
+                            <h6>
+                                {{ active_allocation.bed.room.floor.building.name }}
+                            </h6>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <small class="text-muted">Floor</small>
+                            <h6>
+                                {{ active_allocation.bed.room.floor.floor_number }}
+                            </h6>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <small class="text-muted">Room Number</small>
+                            <h6>
+                                {{ active_allocation.bed.room.room_number }}
+                            </h6>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <small class="text-muted">Bed Number</small>
+                            <h6>
+                                {{ active_allocation.bed.bed_number }}
+                            </h6>
+                        </div>
+
+                        <div class="col-12">
+                            <span class="badge bg-success">
+                                Currently Allocated
+                            </span>
+                        </div>
+
+                    </div>
+
+                {% else %}
+
+                    <p class="text-muted mb-0">
+                        No bed has been allocated to you yet.
+                        Your Warden will assign a bed after reservation confirmation.
+                    </p>
+
+                {% endif %}
+
+            </div>
+        </div>
+
 
 </div>
 

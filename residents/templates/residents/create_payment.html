@@ -1,0 +1,153 @@
+
+{% extends 'residents/base.html' %}
+
+{% block title %}Pay Rent | HostelMate{% endblock %}
+
+{% block content %}
+
+<div class="container py-4">
+
+    <div class="mb-4">
+        <h2>Pay Rent</h2>
+        <p class="text-muted">Choose how you would like to pay your rent.</p>
+    </div>
+
+    <div class="row g-4">
+
+        <div class="col-lg-5">
+            <div class="card border-0 shadow-sm p-4">
+                <h5 class="mb-3">Rent Bill Details</h5>
+
+                <p class="mb-2">
+                    <strong>Billing Period:</strong>
+                    {{ fee.period_start|date:"d M Y" }} -
+                    {{ fee.period_end|date:"d M Y" }}
+                </p>
+
+                <p class="mb-2">
+                    <strong>Total Rent:</strong>
+                    ₹{{ fee.amount|floatformat:2 }}
+                </p>
+
+                <p class="mb-2">
+                    <strong>Already Paid:</strong>
+                    ₹{{ fee.total_paid|floatformat:2 }}
+                </p>
+
+                <hr>
+
+                <p class="mb-1 text-muted">Outstanding Balance</p>
+                <h2 class="text-danger">
+                    ₹{{ fee.balance|floatformat:2 }}
+                </h2>
+            </div>
+        </div>
+
+        <div class="col-lg-7">
+            <div class="card border-0 shadow-sm p-4">
+
+                <h5 class="mb-4">Select Payment Amount</h5>
+
+                <form method="POST">
+                    {% csrf_token %}
+
+                    <div class="form-check border rounded p-3 mb-3">
+                        <input
+                            class="form-check-input"
+                            type="radio"
+                            name="payment_type"
+                            id="full_payment"
+                            value="FULL"
+                            checked
+                        >
+
+                        <label class="form-check-label ms-2"
+                               for="full_payment">
+                            <strong>Full Payment</strong>
+                            <div class="text-muted">
+                                Pay the complete outstanding balance.
+                            </div>
+                            <strong>
+                                ₹{{ fee.balance|floatformat:2 }}
+                            </strong>
+                        </label>
+                    </div>
+
+                    <div class="form-check border rounded p-3 mb-3">
+                        <input
+                            class="form-check-input"
+                            type="radio"
+                            name="payment_type"
+                            id="partial_payment"
+                            value="PARTIAL"
+                        >
+
+                        <label class="form-check-label ms-2"
+                               for="partial_payment">
+                            <strong>Partial Payment</strong>
+                            <div class="text-muted">
+                                Pay an amount of your choice.
+                            </div>
+                        </label>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label">
+                            Payment Amount (₹)
+                        </label>
+
+                        <input
+                            type="number"
+                            name="amount"
+                            id="payment_amount"
+                            class="form-control"
+                            value="{{ fee.balance }}"
+                            min="0.01"
+                            max="{{ fee.balance }}"
+                            step="0.01"
+                            readonly
+                            required
+                        >
+
+                        <small class="text-muted">
+                            Maximum amount:
+                            ₹{{ fee.balance|floatformat:2 }}
+                        </small>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100">
+                        Continue to Payment
+                    </button>
+
+                </form>
+
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    const fullPayment = document.getElementById('full_payment');
+    const partialPayment = document.getElementById('partial_payment');
+    const amountInput = document.getElementById('payment_amount');
+
+    const outstandingBalance = Number(amountInput.max);
+
+    fullPayment.addEventListener('change', function () {
+        if (this.checked) {
+            amountInput.value = outstandingBalance.toFixed(2);
+            amountInput.readOnly = true;
+        }
+    });
+
+    partialPayment.addEventListener('change', function () {
+        if (this.checked) {
+            amountInput.value = '';
+            amountInput.readOnly = false;
+            amountInput.focus();
+        }
+    });
+</script>
+
+{% endblock %}

@@ -1,0 +1,95 @@
+
+{% extends 'residents/base.html' %}
+
+{% block title %}Razorpay Checkout | HostelMate{% endblock %}
+
+{% block content %}
+
+<div class="container py-5">
+    <div class="card shadow-sm border-0 mx-auto p-4"
+         style="max-width: 500px;">
+
+        <h3 class="mb-3">Complete Your Payment</h3>
+
+        <p class="text-muted">Rent payment for HostelMate</p>
+
+        <div class="bg-light rounded p-3 mb-4">
+            <small class="text-muted">Payment Amount</small>
+            <h2 class="mb-0">
+                ₹{{ amount|floatformat:2 }}
+            </h2>
+        </div>
+
+        <button id="pay-button" class="btn btn-success w-100">
+            Pay ₹{{ amount|floatformat:2 }}
+        </button>
+
+        <p class="text-muted small text-center mt-3">
+            Secure payment powered by Razorpay
+        </p>
+
+    </div>
+</div>
+
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
+<script>
+    const options = {
+        key: "{{ key_id|escapejs }}",
+        amount: "{{ order_amount }}",
+        currency: "INR",
+        name: "HostelMate",
+        description: "Rent Payment",
+        order_id: "{{ order_id|escapejs }}",
+
+        handler: function (response) {
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = "{% url 'resident_verify_payment' %}";
+
+            const fields = {
+                csrfmiddlewaretoken: "{{ csrf_token }}",
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_signature: response.razorpay_signature
+            };
+
+            for (const name in fields) {
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = name;
+                input.value = fields[name];
+                form.appendChild(input);
+            }
+
+            document.body.appendChild(form);
+            form.submit();
+        },
+
+        theme: {
+            color: "#2563eb"
+        }
+    };
+
+    document.getElementById('pay-button').onclick = function () {
+        const razorpay = new Razorpay(options);
+
+        razorpay.on('payment.failed', function (response) {
+                      const error = response.error || {};
+
+                    console.error('Razorpay payment failed:', error);
+
+                    alert(
+                        'Payment failed\n\n' +
+                        'Code: ' + (error.code || 'N/A') + '\n' +
+                        'Description: ' + (error.description || 'N/A') + '\n' +
+                        'Reason: ' + (error.reason || 'N/A') + '\n' +
+                        'Step: ' + (error.step || 'N/A')
+                    );
+                });
+
+        razorpay.open();
+    };
+</script>
+
+{% endblock %}

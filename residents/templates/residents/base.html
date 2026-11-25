@@ -67,8 +67,9 @@
                 </a>
             </li>
 
-            <li>
-                <a href="#">
+           <li>
+                <a href="{% url 'resident_rent_payments' %}"
+                class="{% if request.resolver_match.url_name == 'resident_rent_payments' %}active{% endif %}">
                     <i class="fa-solid fa-wallet"></i>
                     <span>Rent & Payments</span>
                 </a>

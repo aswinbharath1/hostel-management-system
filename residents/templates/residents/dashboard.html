@@ -22,7 +22,13 @@
             </div>
             <div>
                 <p>My Room</p>
-                <h4>Not Allocated</h4>
+                <h4>
+                    {% if active_allocation %}
+                        {{ active_allocation.bed.room.room_number }}
+                    {% else %}
+                        Not Allocated
+                    {% endif %}
+                </h4>
             </div>
         </div>
     </div>
@@ -34,7 +40,7 @@
             </div>
             <div>
                 <p>Pending Rent</p>
-                <h4>₹ 0.00</h4>
+                <h4>₹ {{ pending_rent|floatformat:2 }}</h4>
             </div>
         </div>
     </div>
@@ -58,7 +64,7 @@
             </div>
             <div>
                 <p>Stay Status</p>
-                <h4>Not Started</h4>
+                <h4>{{ stay_status }}</h4>
             </div>
         </div>
     </div>

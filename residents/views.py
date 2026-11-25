@@ -6,11 +6,15 @@ from django.contrib import messages
 from django.utils.dateparse import parse_date
 from django.utils import timezone
 from django.core.exceptions import ValidationError
+from decimal import Decimal
 
+from allocations.models import Allocation
+from payments.models import Fee
 from properties.models import Room
 from reservations.models import AccommodationRequest
 
 User = get_user_model()
+
 
 
 @login_required
@@ -18,7 +22,53 @@ def resident_dashboard(request):
     if not request.user.profile_completed:
         return redirect('complete_profile')
 
-    return render(request, 'residents/dashboard.html')
+    # Get the resident's active room allocation
+    active_allocation = Allocation.objects.filter(
+        resident=request.user,
+        is_active=True
+    ).select_related(
+        'bed',
+        'bed__room',
+        'bed__room__floor',
+        'bed__room__floor__building'
+    ).first()
+
+    # Get the resident's most recent completed allocation
+    previous_allocation = Allocation.objects.filter(
+        resident=request.user,
+        is_active=False,
+        vacated_on__isnull=False
+    ).order_by('-vacated_on').first()
+
+    # Determine stay status
+    if active_allocation:
+        stay_status = 'Active'
+    elif previous_allocation:
+        stay_status = 'Completed'
+    else:
+        stay_status = 'Not Started'
+
+    # Calculate total outstanding rent
+    fees = Fee.objects.filter(
+        allocation__resident=request.user
+    )
+
+    pending_rent = sum(
+        (fee.balance for fee in fees),
+        Decimal('0.00')
+    )
+
+    context = {
+        'active_allocation': active_allocation,
+        'pending_rent': pending_rent,
+        'stay_status': stay_status,
+    }
+
+    return render(
+        request,
+        'residents/dashboard.html',
+        context
+    )
 
 
 @login_required
@@ -111,18 +161,62 @@ def accommodation_request(request):
                     for error_message in field_errors:
                         messages.error(request, error_message)
 
+    
     requests = AccommodationRequest.objects.filter(
         resident=request.user
+    ).select_related(
+        'reservation'
     ).order_by('-created_at')
+
+    active_allocation = request.user.allocations.filter(
+        is_active=True
+    ).select_related(
+        'bed',
+        'bed__room',
+        'bed__room__floor',
+        'bed__room__floor__building'
+    ).first()
 
     context = {
         'requests': requests,
         'room_type_choices': Room.RoomType.choices,
         'today': timezone.localdate(),
+        'active_allocation': active_allocation,
     }
 
     return render(
         request,
         'residents/accommodation_request.html',
+        context
+    )
+
+
+
+
+@login_required
+def resident_rent_payments(request):
+    if request.user.role != User.Role.RESIDENT:
+        return redirect('auth')
+
+    if not request.user.profile_completed:
+        return redirect('complete_profile')
+
+    fees = Fee.objects.filter(
+        allocation__resident=request.user
+    ).select_related(
+        'allocation',
+        'allocation__bed',
+        'allocation__bed__room'
+    ).prefetch_related(
+        'payments'
+    ).order_by('-period_start')
+
+    context = {
+        'fees': fees,
+    }
+
+    return render(
+        request,
+        'residents/rent_payments.html',
         context
     )

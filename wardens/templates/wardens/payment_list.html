@@ -1,0 +1,143 @@
+
+{% extends 'wardens/base.html' %}
+
+{% block title %}Payments | HostelMate{% endblock %}
+
+{% block content %}
+
+<div class="dashboard-header">
+    <div>
+        <h2>Payments</h2>
+        <p>Manage resident rent bills and payments.</p>
+    </div>
+</div>
+
+<!-- Summary Cards -->
+<div class="row g-3 mb-4">
+
+    <div class="col-md-3">
+        <div class="dashboard-panel p-3">
+            <small class="text-muted">Total Billed</small>
+            <h3>₹{{ total_billed|floatformat:2 }}</h3>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="dashboard-panel p-3">
+            <small class="text-muted">Total Collected</small>
+            <h3>₹{{ total_collected|floatformat:2 }}</h3>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="dashboard-panel p-3">
+            <small class="text-muted">Outstanding</small>
+            <h3>₹{{ total_outstanding|floatformat:2 }}</h3>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="dashboard-panel p-3">
+            <small class="text-muted">Unpaid Bills</small>
+            <h3>{{ pending_count }}</h3>
+        </div>
+    </div>
+
+</div>
+
+<!-- Fee Records -->
+<div class="dashboard-panel p-3">
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5>Rent Bills</h5>
+        <span class="text-muted">
+            {{ fees.count }} records
+        </span>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-hover align-middle">
+
+            <thead>
+                <tr>
+                    <th>Resident</th>
+                    <th>Room / Bed</th>
+                    <th>Billing Period</th>
+                    <th>Amount</th>
+                    <th>Paid</th>
+                    <th>Balance</th>
+                    <th>Due Date</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for fee in fees %}
+                <tr>
+                    <td>
+                        {{ fee.allocation.resident.full_name|default:fee.allocation.resident.username }}
+                    </td>
+
+                    <td>
+                        {{ fee.allocation.bed.room.room_number }}
+                        /
+                        {{ fee.allocation.bed.bed_number }}
+                    </td>
+
+                    <td>
+                        {{ fee.period_start|date:"d M Y" }}
+                        -
+                        {{ fee.period_end|date:"d M Y" }}
+                    </td>
+
+                    <td>₹{{ fee.amount|floatformat:2 }}</td>
+
+                    <td>₹{{ fee.total_paid|floatformat:2 }}</td>
+
+                    <td>₹{{ fee.balance|floatformat:2 }}</td>
+
+                    <td>{{ fee.due_date|date:"d M Y" }}</td>
+
+                    <td>
+                        {% if fee.status == 'PAID' %}
+                            <span class="badge bg-success">Paid</span>
+                        {% elif fee.status == 'PARTIALLY_PAID' %}
+                            <span class="badge bg-info">Partially Paid</span>
+                        {% elif fee.status == 'OVERDUE' %}
+                            <span class="badge bg-danger">Overdue</span>
+                        {% else %}
+                            <span class="badge bg-warning text-dark">Pending</span>
+                        {% endif %}
+                    </td>
+
+                    <td>
+                        {% if fee.balance > 0 %}
+                            <a href="{% url 'warden_record_payment' fee.id %}"
+                            class="btn btn-sm btn-primary">
+                                <i class="fa-solid fa-plus me-1"></i>
+                                Record Payment
+                            </a>
+                        {% else %}
+                            <span class="text-success">
+                                <i class="fa-solid fa-check-circle"></i> Completed
+                            </span>
+                        {% endif %}
+                    </td>
+                </tr>
+
+                {% empty %}
+                <tr>
+                    <td colspan="9" class="text-center text-muted py-4">
+                        No rent bills available.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+
+        </table>
+    </div>
+
+</div>
+
+{% endblock %}

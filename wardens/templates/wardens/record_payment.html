@@ -1,0 +1,145 @@
+
+{% extends 'wardens/base.html' %}
+
+{% block title %}Record Payment | HostelMate{% endblock %}
+
+{% block content %}
+
+<div class="dashboard-header">
+    <div>
+        <h2>Record Payment</h2>
+        <p>Record a rent payment from a resident.</p>
+    </div>
+    <a href="{% url 'warden_payment_list' %}" class="btn btn-outline-secondary">
+        <i class="fa-solid fa-arrow-left me-1"></i> Back
+    </a>
+</div>
+
+<div class="row g-4">
+
+    <!-- Resident and Bill Details -->
+    <div class="col-lg-5">
+        <div class="dashboard-panel p-4">
+            <h5 class="mb-3">Rent Bill Details</h5>
+
+            <div class="mb-3">
+                <small class="text-muted">Resident</small>
+                <h6>
+                    {{ fee.allocation.resident.full_name|default:fee.allocation.resident.username }}
+                </h6>
+            </div>
+
+            <div class="mb-3">
+                <small class="text-muted">Room / Bed</small>
+                <h6>
+                    {{ fee.allocation.bed.room.room_number }}
+                    /
+                    {{ fee.allocation.bed.bed_number }}
+                </h6>
+            </div>
+
+            <div class="mb-3">
+                <small class="text-muted">Billing Period</small>
+                <h6>
+                    {{ fee.period_start|date:"d M Y" }}
+                    - {{ fee.period_end|date:"d M Y" }}
+                </h6>
+            </div>
+
+            <hr>
+
+            <div class="d-flex justify-content-between mb-2">
+                <span>Total Rent</span>
+                <strong>₹{{ fee.amount|floatformat:2 }}</strong>
+            </div>
+
+            <div class="d-flex justify-content-between mb-2">
+                <span>Already Paid</span>
+                <strong class="text-success">
+                    ₹{{ fee.total_paid|floatformat:2 }}
+                </strong>
+            </div>
+
+            <div class="d-flex justify-content-between">
+                <span>Outstanding Balance</span>
+                <strong class="text-danger fs-5">
+                    ₹{{ fee.balance|floatformat:2 }}
+                </strong>
+            </div>
+        </div>
+    </div>
+
+    <!-- Payment Form -->
+    <div class="col-lg-7">
+        <div class="dashboard-panel p-4">
+            <h5 class="mb-4">Payment Information</h5>
+
+            <form method="POST">
+                {% csrf_token %}
+
+                <div class="mb-3">
+                    <label class="form-label">Payment Amount (₹)</label>
+                    <input
+                        type="number"
+                        name="amount"
+                        class="form-control"
+                        min="0.01"
+                        max="{{ fee.balance }}"
+                        step="0.01"
+                        placeholder="Enter amount"
+                        required
+                    >
+                    <small class="text-muted">
+                        Maximum payable amount: ₹{{ fee.balance|floatformat:2 }}
+                    </small>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Payment Method</label>
+                    <select name="payment_method" class="form-select" required>
+                        <option value="">Select payment method</option>
+                        {% for value, label in payment_methods %}
+                            <option value="{{ value }}">{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Transaction Reference</label>
+                    <input
+                        type="text"
+                        name="transaction_ref"
+                        class="form-control"
+                        placeholder="Optional transaction ID"
+                    >
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label">Notes</label>
+                    <textarea
+                        name="notes"
+                        class="form-control"
+                        rows="3"
+                        placeholder="Additional payment details (optional)"
+                    ></textarea>
+                </div>
+
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fa-solid fa-check me-1"></i>
+                        Save Payment
+                    </button>
+
+                    <a href="{% url 'warden_payment_list' %}"
+                       class="btn btn-outline-secondary">
+                        Cancel
+                    </a>
+                </div>
+
+            </form>
+        </div>
+    </div>
+
+</div>
+
+{% endblock %}

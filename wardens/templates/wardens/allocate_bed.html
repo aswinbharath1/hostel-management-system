@@ -99,6 +99,21 @@
                 </small>
             {% endif %}
         </div>
+        <div class="mb-3">
+            <label for="payment_method" class="form-label">
+                Advance Payment Method
+            </label>
+
+            <select name="payment_method"
+                    id="payment_method"
+                    class="form-select"
+                    required>
+                <option value="">Choose payment method</option>
+                <option value="CASH">Cash</option>
+                <option value="UPI">UPI</option>
+                <option value="BANK_TRANSFER">Bank Transfer</option>
+            </select>
+        </div>
 
         <div class="allocation-form-actions">
             <a href="{% url 'warden_allocation_list' %}"
